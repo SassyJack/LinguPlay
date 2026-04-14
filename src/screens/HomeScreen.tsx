@@ -32,12 +32,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   }, []);
 
   const handleStartActivity = useCallback(() => {
-    if (!user?.isAuthenticated) {
+    if (!user) {
       showToast('Por favor inicia sesión', 'warning');
       return;
     }
     navigateTo('component');
-  }, [user?.isAuthenticated, navigateTo, showToast]);
+  }, [user, navigateTo, showToast]);
 
   const handleViewProgress = useCallback(() => {
     navigateTo('results');
@@ -58,12 +58,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
     <Container
       style={{ backgroundColor: theme.colors.background }}
       testID={testID}
-      accessible={true}
-      accessibilityLabel="Pantalla de inicio"
     >
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         testID="home-scroll-view"
+        accessible={true}
         accessibilityLabel="Contenido principal"
       >
         {/* Header Welcome */}

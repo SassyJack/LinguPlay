@@ -60,14 +60,15 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     return level.activities.find((a: any) => a.id === currentActivityId);
   }, [currentComponentId, currentLevelId, currentActivityId]);
 
+  // Memoized callbacks for event handlers - defined before error boundary
+  const handleExit = useCallback(() => {
+    goBack();
+  }, [goBack]);
+
   // Error state fallback
   if (!activity) {
     return (
-      <Container
-        testID={testID}
-        accessible={true}
-        accessibilityLabel="Pantalla de error"
-      >
+      <Container testID={testID}>
         <View style={styles.centerContent}>
           <Text variant="h2" testID="activity-error-title">
             ⚠️ Actividad no encontrada
@@ -91,8 +92,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       </Container>
     );
   }
-
-  // Memoized callbacks for event handlers
   const handleSubmit = useCallback(async () => {
     // Validation checks
     if (!activity) {
@@ -175,16 +174,10 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     setError(null);
   }, []);
 
-  const handleExit = useCallback(() => {
-    goBack();
-  }, [goBack]);
-
   return (
     <Container
       style={{ backgroundColor: theme.colors.background }}
       testID={testID}
-      accessible={true}
-      accessibilityLabel={`Actividad: ${activity.title}`}
     >
       <View
         style={styles.header}
@@ -333,40 +326,68 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
                   : theme.colors.error + '15',
               },
             ]}
+            testID="result-card"
+            accessible={true}
+            accessibilityLabel={isCorrect ? 'Respuesta correcta' : 'Respuesta incorrecta'}
           >
             <Text
               variant="h1"
               color={isCorrect ? theme.colors.success : theme.colors.error}
               style={{ textAlign: 'center', marginBottom: 8 }}
+              testID="result-title"
             >
               {isCorrect ? '¡Correcto! ✓' : 'Intenta de nuevo'}
             </Text>
             {isCorrect ? (
-              <>
-                <Text
-                  variant="body"
-                  color={theme.colors.success}
-                  style={{ textAlign: 'center' }}
-                >
-                  Ganaste {activity.reward || 10} puntos
-                </Text>
-              </>
+              <Text
+                variant="body"
+                color={theme.colors.success}
+                style={{ textAlign: 'center' }}
+                testID="reward-text"
+              >
+                Ganaste {activity.reward || 10} puntos
+              </Text>
             ) : (
-              <>
+              <View testID="incorrect-section">
                 <Text
                   variant="body"
                   color={theme.colors.error}
                   style={{ textAlign: 'center', marginBottom: 8 }}
                 >
-                  La respuesta correcta era: <Text variant="h3">{activity.correctAnswer}</Text>
+                  La respuesta correcta era:
                 </Text>
-              </>
+                <Text
+                  variant="h3"
+                  color={theme.colors.error}
+                  style={{ textAlign: 'center' }}
+                  testID="correct-answer-text"
+                >
+                  {activity.correctAnswer}
+                </Text>
+              </View>
             )}
           </View>
         )}
 
+        {/* Loading Indicator */}
+        {isSubmitting && (
+          <View
+            style={styles.loadingContainer}
+            testID="loading-indicator"
+            accessible={true}
+            accessibilityLabel="Procesando respuesta"
+          >
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
+        )}
+
         {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
+        <View
+          style={styles.buttonContainer}
+          testID="button-container"
+          accessible={true}
+          accessibilityLabel="Botones de acción"
+        >
           {!showResult ? (
             <Button
               title={isSubmitting ? 'Enviando...' : 'Enviar Respuesta'}
@@ -378,10 +399,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           ) : (
             <Button
               title={isCorrect ? 'Siguiente' : 'Reintentar'}
-              onPress={isCorrect ? handleContinue : () => {
-                setShowResult(false);
-                setSelectedOption(null);
-              }}
+              onPress={handleContinue}
               variant="primary"
               testID="continue-button"
             />
@@ -410,6 +428,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
   },
   card: {
     borderRadius: 12,
@@ -425,9 +444,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 50,
   },
   resultCard: {
     borderRadius: 12,
@@ -435,9 +454,17 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     alignItems: 'center',
   },
+  loadingContainer: {
+    marginVertical: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   buttonContainer: {
     marginTop: 24,
     gap: 12,
+  },
+  errorText: {
+    textAlign: 'center',
   },
 });
 

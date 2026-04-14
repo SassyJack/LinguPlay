@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
-  Image,
   Platform,
 } from 'react-native';
 import { Button, Text, Container } from '@/components';
@@ -12,43 +11,80 @@ import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
 
-export const ComponentSelectorScreen: React.FC = () => {
+/**
+ * ComponentSelectorScreen - Browse language components with progress tracking
+ * Displays 4 components (Fonológico, Morfosintáctico, Semántico, Pragmático)
+ */
+interface ComponentSelectorScreenProps {
+  testID?: string;
+}
+
+export const ComponentSelectorScreen: React.FC<ComponentSelectorScreenProps> = ({
+  testID = 'component-selector-screen',
+}) => {
   const { theme } = useTheme();
   const { navigateTo, goBack } = useUI();
   const { completedActivities } = useGame();
 
-  const handleSelectComponent = (componentId: string) => {
-    navigateTo('level', { componentId });
-  };
+  // Memoized callback
+  const handleSelectComponent = useCallback(
+    (componentId: string) => {
+      navigateTo('level', { componentId });
+    },
+    [navigateTo]
+  );
 
-  const getComponentProgress = (componentId: string) => {
-    let total = 0;
-    let completed = 0;
+  const handleGoBack = useCallback(() => {
+    goBack();
+  }, [goBack]);
 
-    const component = components.find((c) => c.id === componentId);
-    if (component) {
-      component.levels.forEach((level: any) => {
-        level.activities.forEach((activity: any) => {
-          total++;
-          if (completedActivities[activity.id]) {
-            completed++;
-          }
+  // Memoized progress calculation
+  const getComponentProgress = useCallback(
+    (componentId: string) => {
+      let total = 0;
+      let completed = 0;
+
+      const component = components.find((c) => c.id === componentId);
+      if (component) {
+        component.levels.forEach((level: any) => {
+          level.activities.forEach((activity: any) => {
+            total++;
+            if (completedActivities?.[activity.id]) {
+              completed++;
+            }
+          });
         });
-      });
-    }
+      }
 
-    return total > 0 ? (completed / total) * 100 : 0;
-  };
+      return total > 0 ? (completed / total) * 100 : 0;
+    },
+    [completedActivities]
+  );
+
+  // Memoized components data
+  const componentProgressData = useMemo(
+    () =>
+      components.map((component: any) => ({
+        ...component,
+        progress: getComponentProgress(component.id),
+      })),
+    [getComponentProgress]
+  );
 
   return (
     <Container
       style={{ backgroundColor: theme.colors.background }}
-      testID="component-selector-screen"
+      testID={testID}
     >
-      <View style={styles.header}>
+      <View
+        style={styles.header}
+        testID="selector-header"
+        accessible={true}
+        accessibilityLabel="Encabezado"
+      >
         <Button
           title="← Atrás"
-          onPress={goBack}
+          onPress={handleGoBack}
           variant="outline"
           testID="back-button"
         />
@@ -57,10 +93,13 @@ export const ComponentSelectorScreen: React.FC = () => {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        {components.map((component: any) => {
-          const progress = getComponentProgress(component.id);
-          const progressPercentage = progress.toFixed(0);
+      <ScrollView
+        contentContainerStyle={styles.container}
+        testID="components-scroll-view"
+      >
+        {componentProgressData.map((component: any) => {
+          const progressPercentage = component.progress.toFixed(0);
+          const isCompleted = component.progress === 100;
 
           return (
             <TouchableOpacity
@@ -71,6 +110,9 @@ export const ComponentSelectorScreen: React.FC = () => {
               ]}
               onPress={() => handleSelectComponent(component.id)}
               testID={`component-card-${component.id}`}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`${component.name}: ${progressPercentage}% completado${isCompleted ? ', completado' : ''}`}
             >
               {/* Accent bar */}
               <View
@@ -78,20 +120,31 @@ export const ComponentSelectorScreen: React.FC = () => {
                   styles.accentBar,
                   { backgroundColor: component.accent },
                 ]}
+                testID={`accent-bar-${component.id}`}
               />
 
               {/* Content */}
               <View style={styles.componentContent}>
                 {/* Title and mascot */}
-                <View style={styles.titleSection}>
+                <View
+                  style={styles.titleSection}
+                  testID={`title-section-${component.id}`}
+                  accessible={true}
+                  accessibilityLabel={component.name}
+                >
                   <View style={styles.titleText}>
-                    <Text variant="h3" color={component.accent}>
+                    <Text
+                      variant="h3"
+                      color={component.accent}
+                      testID={`component-title-${component.id}`}
+                    >
                       {component.title}
                     </Text>
                     <Text
                       variant="caption"
                       color={theme.colors.onSurface}
                       style={{ marginTop: 4 }}
+                      testID={`component-subtitle-${component.id}`}
                     >
                       {component.subtitle}
                     </Text>
@@ -101,8 +154,13 @@ export const ComponentSelectorScreen: React.FC = () => {
                       styles.mascotBadge,
                       { backgroundColor: component.accent + '30' },
                     ]}
+                    testID={`mascot-badge-${component.id}`}
                   >
-                    <Text variant="h2" style={{ textAlign: 'center' }}>
+                    <Text
+                      variant="h2"
+                      style={{ textAlign: 'center' }}
+                      testID={`mascot-text-${component.id}`}
+                    >
                       {component.mascot?.substring(0, 1) || '🎓'}
                     </Text>
                   </View>
@@ -112,17 +170,21 @@ export const ComponentSelectorScreen: React.FC = () => {
                 <View
                   style={[
                     styles.progressBar,
-                    { backgroundColor: theme.colors.gray200 },
+                    { backgroundColor: theme.colors.gray200 || '#E5E7EB' },
                   ]}
+                  testID={`progress-bar-${component.id}`}
+                  accessible={true}
+                  accessibilityLabel={`Progreso: ${progressPercentage}%`}
                 >
                   <View
                     style={[
                       styles.progressFill,
                       {
                         backgroundColor: component.accent,
-                        width: `${Math.min(progress, 100)}%`,
+                        width: `${Math.min(component.progress, 100)}%`,
                       },
                     ]}
+                    testID={`progress-fill-${component.id}`}
                   />
                 </View>
 
@@ -131,8 +193,10 @@ export const ComponentSelectorScreen: React.FC = () => {
                   variant="caption"
                   color={theme.colors.onSurface}
                   style={{ marginTop: 8 }}
+                  testID={`progress-text-${component.id}`}
                 >
-                  Progreso: {progressPercentage}% completado ({component.levels.length} niveles)
+                  Progreso: {progressPercentage}% ({component.levels.length} niveles)
+                  {isCompleted && ' ✓'}
                 </Text>
               </View>
 
