@@ -1,0 +1,1235 @@
+import React from 'react';
+import { AppContainer } from './src/screens/AppContainer';
+
+/**
+ * LinguaPlay - Therapeutic Language Learning Game
+ * 
+ * Main entry point for the app. Routes to AppContainer.tsx
+ * which manages all game logic, navigation, and UI rendering.
+ * 
+ * Task 3 Refactoring: App.js (1,178 lines) migrated to:
+ * - src/screens/AppContainer.tsx (TypeScript, Zustand stores integration)
+ * - src/store/ (gameStore, userStore, uiStore)
+ * - src/components/ (future component extraction)
+ * 
+ * Sep 2024 - Refactorization Phase
+ */
+export default function App() {
+  return <AppContainer />;
+}
+  const [progress, setProgress] = useState(initialProgress);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [sequenceAnswer, setSequenceAnswer] = useState([]);
+  const [feedback, setFeedback] = useState(null);
+  const [audioOpen, setAudioOpen] = useState(false);
+  const [attemptsForActivity, setAttemptsForActivity] = useState(0);
+  const [celebration, setCelebration] = useState('');
+
+  const totalActivities = components.reduce((sum, component) => {
+    return (
+      sum +
+      component.levels.reduce(
+        (levelSum, level) => levelSum + level.activities.length,
+        0
+      )
+    );
+  }, 0);
+
+  const completedCount = Object.keys(progress.completedActivities).length;
+  const unlockedAchievements = achievementMilestones.filter(
+    milestone => completedCount >= milestone.count
+  );
+
+  const currentComponent =
+    screen.type !== 'home'
+      ? components.find(component => component.id === screen.componentId)
+      : null;
+
+  const currentLevel =
+    currentComponent && screen.levelId
+      ? currentComponent.levels.find(level => level.id === screen.levelId)
+      : null;
+
+  const currentActivity =
+    currentLevel && screen.activityId
+      ? currentLevel.activities.find(
+          activity => activity.id === screen.activityId
+        )
+      : null;
+
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setSequenceAnswer([]);
+    setFeedback(null);
+    setAudioOpen(false);
+    setAttemptsForActivity(0);
+    setCelebration('');
+  }, [screen]);
+
+  const selectLevel = (componentId, levelId) => {
+    setScreen({ type: 'level', componentId, levelId });
+  };
+
+  const selectActivity = (componentId, levelId, activityId) => {
+    setScreen({ type: 'activity', componentId, levelId, activityId });
+  };
+
+  const onPressBankItem = item => {
+    if (!currentActivity || currentActivity.type !== 'order') {
+      return;
+    }
+
+    const selectedCount = sequenceAnswer.filter(value => value === item).length;
+    const availableCount = currentActivity.bank.filter(
+      value => value === item
+    ).length;
+
+    if (selectedCount < availableCount) {
+      setSequenceAnswer(current => [...current, item]);
+    }
+  };
+
+  const onRemoveSequenceItem = index => {
+    setSequenceAnswer(current =>
+      current.filter((_, itemIndex) => itemIndex !== index)
+    );
+  };
+
+  const verifyActivity = () => {
+    if (!currentActivity) {
+      return;
+    }
+
+    const hasAnswer =
+      currentActivity.type === 'choice'
+        ? selectedAnswer !== null
+        : sequenceAnswer.length === currentActivity.correctSequence.length;
+
+    if (!hasAnswer) {
+      setFeedback({
+        kind: 'warning',
+        title: 'Falta un paso',
+        message: 'Antes de verificar, completa tu respuesta.',
+      });
+      return;
+    }
+
+    const isCorrect =
+      currentActivity.type === 'choice'
+        ? selectedAnswer === currentActivity.correctAnswer
+        : JSON.stringify(sequenceAnswer) ===
+          JSON.stringify(currentActivity.correctSequence);
+
+    setAttemptsForActivity(current => current + 1);
+    setProgress(current => {
+      const alreadyCompleted = Boolean(
+        current.completedActivities[currentActivity.id]
+      );
+      const nextMistakes = { ...current.componentMistakes };
+      const nextCompleted = { ...current.completedActivities };
+      let nextScore = current.score;
+      let nextStars = current.stars;
+      let nextStreak = current.streak;
+      let nextCorrect = current.totalCorrect;
+
+      if (isCorrect) {
+        if (!alreadyCompleted) {
+          nextCompleted[currentActivity.id] = {
+            componentId: currentComponent.id,
+            levelId: currentLevel.id,
+            title: currentActivity.title,
+          };
+          nextScore += currentActivity.reward;
+          nextStars += 3;
+        }
+        nextStreak += 1;
+        nextCorrect += 1;
+        nextMistakes[currentComponent.id] = 0;
+      } else {
+        nextStreak = 0;
+        nextMistakes[currentComponent.id] =
+          (nextMistakes[currentComponent.id] || 0) + 1;
+      }
+
+      return {
+        completedActivities: nextCompleted,
+        score: nextScore,
+        stars: nextStars,
+        streak: nextStreak,
+        totalAttempts: current.totalAttempts + 1,
+        totalCorrect: nextCorrect,
+        componentMistakes: nextMistakes,
+      };
+    });
+
+    if (isCorrect) {
+      setFeedback({
+        kind: 'success',
+        title: 'Correcto!',
+        message: 'Sumaste puntos, estrellas y avanzaste en tu mision.',
+      });
+      setCelebration(`+${currentActivity.reward} puntos`);
+    } else {
+      setFeedback({
+        kind: 'error',
+        title: 'Vamos otra vez',
+        message: currentActivity.supportText,
+      });
+    }
+  };
+
+  const goNextActivity = () => {
+    if (!currentLevel || !currentActivity) {
+      return;
+    }
+
+    const activityIndex = currentLevel.activities.findIndex(
+      activity => activity.id === currentActivity.id
+    );
+
+    if (
+      activityIndex >= 0 &&
+      activityIndex < currentLevel.activities.length - 1
+    ) {
+      const nextActivity = currentLevel.activities[activityIndex + 1];
+      selectActivity(currentComponent.id, currentLevel.id, nextActivity.id);
+      return;
+    }
+
+    setScreen({ type: 'component', componentId: currentComponent.id });
+  };
+
+  const getCompletionForLevel = level => {
+    const completed = level.activities.filter(
+      activity => progress.completedActivities[activity.id]
+    ).length;
+    return { completed, total: level.activities.length };
+  };
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View>
+        <Text style={styles.brand}>LinguaPlay</Text>
+        <Text style={styles.tagline}>
+          Juego terapeutico para fortalecer el lenguaje
+        </Text>
+      </View>
+      <View style={styles.scoreCard}>
+        <Text style={styles.scoreNumber}>{progress.score}</Text>
+        <Text style={styles.scoreLabel}>puntos</Text>
+      </View>
+    </View>
+  );
+
+  const renderTopStats = () => {
+    const accuracy =
+      progress.totalAttempts === 0
+        ? 0
+        : Math.round((progress.totalCorrect / progress.totalAttempts) * 100);
+
+    return (
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={styles.statValue}>{progress.stars}</Text>
+          <Text style={styles.statLabel}>estrellas</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statValue}>{progress.streak}</Text>
+          <Text style={styles.statLabel}>racha</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statValue}>{accuracy}%</Text>
+          <Text style={styles.statLabel}>precision</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const renderHome = () => (
+    <ScrollView contentContainerStyle={styles.scrollContent}>
+      {renderHeader()}
+      {renderTopStats()}
+
+      <View style={styles.heroCard}>
+        <Text style={styles.heroEyebrow}>Ruta terapeutica gamificada</Text>
+        <Text style={styles.heroTitle}>
+          4 componentes, 3 niveles y 24 actividades clinicas.
+        </Text>
+        <Text style={styles.heroBody}>
+          Cada modulo ofrece instrucciones claras, apoyo visual, validacion
+          inmediata y una progresion visible para ninos de 7 a 9 anos.
+        </Text>
+        <View style={styles.progressBarTrack}>
+          <View
+            style={[
+              styles.progressBarFill,
+              {
+                width: `${Math.max(8, (completedCount / totalActivities) * 100)}%`,
+              },
+            ]}
+          />
+        </View>
+        <Text style={styles.heroProgress}>
+          {completedCount} de {totalActivities} actividades completadas
+        </Text>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Componentes del lenguaje</Text>
+        <Text style={styles.sectionBody}>
+          Elige un modulo para comenzar o continuar.
+        </Text>
+      </View>
+
+      {components.map(component => {
+        const componentCompleted = component.levels.reduce((sum, level) => {
+          return (
+            sum +
+            level.activities.filter(
+              activity => progress.completedActivities[activity.id]
+            ).length
+          );
+        }, 0);
+
+        return (
+          <Pressable
+            key={component.id}
+            style={[styles.componentCard, { borderColor: component.accent }]}
+            onPress={() =>
+              setScreen({ type: 'component', componentId: component.id })
+            }
+          >
+            <View style={styles.componentBadgeRow}>
+              <View
+                style={[
+                  styles.componentBadge,
+                  { backgroundColor: component.accent },
+                ]}
+              >
+                <Text style={styles.componentBadgeText}>
+                  {component.mascot}
+                </Text>
+              </View>
+              <View style={styles.componentBadgeInfo}>
+                <Text style={styles.componentTitle}>{component.title}</Text>
+                <Text style={styles.componentSubtitle}>
+                  {component.subtitle}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.cardFooter}>
+              <Text style={styles.cardFooterText}>
+                {componentCompleted} actividades completas
+              </Text>
+              <Text
+                style={[styles.cardFooterText, { color: component.accent }]}
+              >
+                Entrar
+              </Text>
+            </View>
+          </Pressable>
+        );
+      })}
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Logros desbloqueados</Text>
+        <Text style={styles.sectionBody}>
+          La progresion visible ayuda a sostener motivacion y adherencia.
+        </Text>
+      </View>
+
+      <View style={styles.achievementRow}>
+        {achievementMilestones.map(milestone => {
+          const unlocked = completedCount >= milestone.count;
+          return (
+            <View
+              key={milestone.count}
+              style={[
+                styles.achievementCard,
+                unlocked
+                  ? styles.achievementUnlocked
+                  : styles.achievementLocked,
+              ]}
+            >
+              <Text style={styles.achievementTarget}>{milestone.count}</Text>
+              <Text style={styles.achievementTitle}>{milestone.title}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </ScrollView>
+  );
+
+  const renderComponent = () => {
+    if (!currentComponent) {
+      return null;
+    }
+
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {renderHeader()}
+        <View
+          style={[
+            styles.heroCard,
+            { borderColor: currentComponent.accent, borderWidth: 2 },
+          ]}
+        >
+          <Text style={styles.heroEyebrow}>
+            Mascota guia: {currentComponent.mascot}
+          </Text>
+          <Text style={styles.heroTitle}>{currentComponent.title}</Text>
+          <Text style={styles.heroBody}>{currentComponent.subtitle}</Text>
+          <Text style={styles.heroBody}>
+            Navega por los 3 niveles para adaptar el reto a las edades de 7, 8 y
+            9 anos.
+          </Text>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Selecciona un nivel</Text>
+          <Text style={styles.sectionBody}>
+            Cada nivel incluye dos actividades con enfoque ludico-clinico.
+          </Text>
+        </View>
+
+        {currentComponent.levels.map(level => {
+          const levelProgress = getCompletionForLevel(level);
+          return (
+            <Pressable
+              key={level.id}
+              style={[styles.levelCard, { backgroundColor: level.color }]}
+              onPress={() => selectLevel(currentComponent.id, level.id)}
+            >
+              <Text style={styles.levelLabel}>{level.label}</Text>
+              <Text style={styles.levelMeta}>
+                {level.difficulty} · Edad {level.age}
+              </Text>
+              <Text style={styles.levelMeta}>
+                {levelProgress.completed}/{levelProgress.total} actividades
+                completas
+              </Text>
+            </Pressable>
+          );
+        })}
+
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={() => setScreen({ type: 'home' })}
+        >
+          <Text style={styles.secondaryButtonText}>Volver al inicio</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  };
+
+  const renderLevel = () => {
+    if (!currentComponent || !currentLevel) {
+      return null;
+    }
+
+    const levelProgress = getCompletionForLevel(currentLevel);
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {renderHeader()}
+        <View style={[styles.heroCard, { backgroundColor: '#FFF7E8' }]}>
+          <Text style={styles.heroEyebrow}>{currentComponent.title}</Text>
+          <Text style={styles.heroTitle}>
+            {currentLevel.label} · Edad {currentLevel.age}
+          </Text>
+          <Text style={styles.heroBody}>
+            Dificultad {currentLevel.difficulty.toLowerCase()} con progreso
+            visible y refuerzo inmediato.
+          </Text>
+          <Text style={styles.heroProgress}>
+            {levelProgress.completed} de {levelProgress.total} actividades
+            superadas
+          </Text>
+        </View>
+
+        {currentLevel.activities.map((activity, index) => {
+          const completed = Boolean(progress.completedActivities[activity.id]);
+          return (
+            <Pressable
+              key={activity.id}
+              style={styles.activityCard}
+              onPress={() =>
+                selectActivity(
+                  currentComponent.id,
+                  currentLevel.id,
+                  activity.id
+                )
+              }
+            >
+              <View style={styles.activityHeader}>
+                <Text style={styles.activityIndex}>Actividad {index + 1}</Text>
+                <Text
+                  style={
+                    completed ? styles.activityDone : styles.activityPending
+                  }
+                >
+                  {completed ? 'Completada' : 'Pendiente'}
+                </Text>
+              </View>
+              <Text style={styles.activityTitle}>{activity.title}</Text>
+              <Text style={styles.activityObjective}>{activity.objective}</Text>
+              <Text style={styles.activityDescription}>
+                {activity.instruction}
+              </Text>
+            </Pressable>
+          );
+        })}
+
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={() =>
+            setScreen({ type: 'component', componentId: currentComponent.id })
+          }
+        >
+          <Text style={styles.secondaryButtonText}>Volver a componentes</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  };
+
+  const renderActivity = () => {
+    if (!currentComponent || !currentLevel || !currentActivity) {
+      return null;
+    }
+
+    const componentMistakes =
+      progress.componentMistakes[currentComponent.id] || 0;
+    const shouldAdapt = attemptsForActivity > 0 || componentMistakes >= 2;
+    const completed = Boolean(progress.completedActivities[currentActivity.id]);
+
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {renderHeader()}
+        <View
+          style={[
+            styles.activityHero,
+            { borderColor: currentComponent.accent },
+          ]}
+        >
+          <Text style={styles.heroEyebrow}>
+            {currentComponent.title} · {currentLevel.label}
+          </Text>
+          <Text style={styles.heroTitle}>{currentActivity.title}</Text>
+          <Text style={styles.heroBody}>{currentActivity.objective}</Text>
+          <View style={styles.reinforcementRow}>
+            <View style={styles.reinforcementBadge}>
+              <Text style={styles.reinforcementText}>
+                +{currentActivity.reward} puntos
+              </Text>
+            </View>
+            <View style={styles.reinforcementBadge}>
+              <Text style={styles.reinforcementText}>
+                {completed ? 'Ya dominada' : 'En juego'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.promptCard}>
+          <Text style={styles.promptLabel}>Instruccion</Text>
+          <Text style={styles.promptText}>{currentActivity.instruction}</Text>
+
+          <Text style={styles.promptLabel}>Tarea</Text>
+          <Text style={styles.promptText}>{currentActivity.prompt}</Text>
+
+          <Pressable
+            style={styles.audioButton}
+            onPress={() => setAudioOpen(current => !current)}
+          >
+            <Text style={styles.audioButtonText}>
+              {audioOpen ? 'Ocultar apoyo auditivo' : 'Escuchar apoyo auditivo'}
+            </Text>
+          </Pressable>
+
+          {audioOpen ? (
+            <View style={styles.audioBubble}>
+              <Text style={styles.audioBubbleText}>
+                {currentActivity.audioPrompt}
+              </Text>
+            </View>
+          ) : null}
+
+          {currentActivity.type === 'choice' ? (
+            <View style={styles.optionList}>
+              {currentActivity.options.map(option => {
+                const active = selectedAnswer === option;
+                return (
+                  <Pressable
+                    key={option}
+                    style={[
+                      styles.optionCard,
+                      active && styles.optionCardActive,
+                    ]}
+                    onPress={() => setSelectedAnswer(option)}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        active && styles.optionTextActive,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            <View>
+              <Text style={styles.promptLabel}>Tu respuesta</Text>
+              <View style={styles.sequenceArea}>
+                {sequenceAnswer.length === 0 ? (
+                  <Text style={styles.sequencePlaceholder}>
+                    Toca palabras o silabas para armarla.
+                  </Text>
+                ) : (
+                  sequenceAnswer.map((item, index) => (
+                    <Pressable
+                      key={`${item}-${index}`}
+                      style={styles.sequenceChip}
+                      onPress={() => onRemoveSequenceItem(index)}
+                    >
+                      <Text style={styles.sequenceChipText}>{item}</Text>
+                    </Pressable>
+                  ))
+                )}
+              </View>
+
+              <Text style={styles.promptLabel}>Banco de opciones</Text>
+              <View style={styles.bankArea}>
+                {currentActivity.bank.map((item, index) => {
+                  const selectedCount = sequenceAnswer.filter(
+                    value => value === item
+                  ).length;
+                  const availableCount = currentActivity.bank.filter(
+                    value => value === item
+                  ).length;
+                  const disabled = selectedCount >= availableCount;
+                  return (
+                    <Pressable
+                      key={`${item}-${index}`}
+                      style={[
+                        styles.bankChip,
+                        disabled && styles.bankChipDisabled,
+                      ]}
+                      onPress={() => onPressBankItem(item)}
+                    >
+                      <Text style={styles.bankChipText}>{item}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          <Pressable style={styles.primaryButton} onPress={verifyActivity}>
+            <Text style={styles.primaryButtonText}>Verificar</Text>
+          </Pressable>
+
+          {feedback ? (
+            <View
+              style={[
+                styles.feedbackCard,
+                feedback.kind === 'success'
+                  ? styles.feedbackSuccess
+                  : feedback.kind === 'error'
+                    ? styles.feedbackError
+                    : styles.feedbackWarning,
+              ]}
+            >
+              <Text style={styles.feedbackTitle}>{feedback.title}</Text>
+              <Text style={styles.feedbackMessage}>{feedback.message}</Text>
+              {celebration ? (
+                <Text style={styles.celebrationText}>{celebration}</Text>
+              ) : null}
+            </View>
+          ) : null}
+
+          {shouldAdapt ? (
+            <View style={styles.adaptiveCard}>
+              <Text style={styles.adaptiveTitle}>Apoyo adaptativo</Text>
+              <Text style={styles.adaptiveBody}>
+                {currentActivity.supportText}
+              </Text>
+              <Text style={styles.adaptiveBody}>
+                Recomendacion terapeutica: modela la respuesta y permite una
+                segunda exploracion con menor carga de texto.
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.navRow}>
+          <Pressable
+            style={styles.secondaryButtonWide}
+            onPress={() =>
+              setScreen({
+                type: 'level',
+                componentId: currentComponent.id,
+                levelId: currentLevel.id,
+              })
+            }
+          >
+            <Text style={styles.secondaryButtonText}>Volver al nivel</Text>
+          </Pressable>
+          <Pressable style={styles.primaryButtonWide} onPress={goNextActivity}>
+            <Text style={styles.primaryButtonText}>Siguiente</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.backgroundOrbTop} />
+      <View style={styles.backgroundOrbBottom} />
+      {screen.type === 'home' && renderHome()}
+      {screen.type === 'component' && renderComponent()}
+      {screen.type === 'level' && renderLevel()}
+      {screen.type === 'activity' && renderActivity()}
+      {unlockedAchievements.length > 0 && screen.type !== 'activity' ? (
+        <View style={styles.floatingAchievement}>
+          <Text style={styles.floatingAchievementText}>
+            Logro actual:{' '}
+            {unlockedAchievements[unlockedAchievements.length - 1].title}
+          </Text>
+        </View>
+      ) : null}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFF9F0',
+  },
+  backgroundOrbTop: {
+    position: 'absolute',
+    top: -90,
+    right: -40,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: '#D5F3FF',
+  },
+  backgroundOrbBottom: {
+    position: 'absolute',
+    bottom: -120,
+    left: -60,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: '#FFE6CC',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 120,
+    gap: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  brand: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  tagline: {
+    marginTop: 4,
+    maxWidth: 220,
+    fontSize: 13,
+    color: '#4B5B8A',
+  },
+  scoreCard: {
+    backgroundColor: '#1F295A',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  scoreNumber: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  scoreLabel: {
+    color: '#D8E1FF',
+    fontSize: 12,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    shadowColor: '#1C2A4D',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#52607A',
+    marginTop: 4,
+  },
+  heroCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 22,
+    shadowColor: '#1C2A4D',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 3,
+  },
+  heroEyebrow: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: '#F2994A',
+    fontWeight: '800',
+  },
+  heroTitle: {
+    marginTop: 8,
+    fontSize: 28,
+    lineHeight: 33,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  heroBody: {
+    marginTop: 10,
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#44506C',
+  },
+  progressBarTrack: {
+    marginTop: 16,
+    height: 12,
+    backgroundColor: '#EEF2FF',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#45C4B0',
+  },
+  heroProgress: {
+    marginTop: 10,
+    fontSize: 13,
+    color: '#5F6F90',
+    fontWeight: '700',
+  },
+  sectionHeader: {
+    marginTop: 6,
+  },
+  sectionTitle: {
+    fontSize: 21,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  sectionBody: {
+    marginTop: 6,
+    fontSize: 14,
+    color: '#5A6782',
+  },
+  componentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 26,
+    padding: 18,
+    borderWidth: 2,
+    shadowColor: '#1C2A4D',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 2,
+  },
+  componentBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  componentBadge: {
+    width: 68,
+    height: 68,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  componentBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 20,
+  },
+  componentBadgeInfo: {
+    flex: 1,
+  },
+  componentTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  componentSubtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    color: '#576783',
+  },
+  cardFooter: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardFooterText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#4F5D78',
+  },
+  achievementRow: {
+    gap: 12,
+  },
+  achievementCard: {
+    borderRadius: 22,
+    padding: 16,
+  },
+  achievementUnlocked: {
+    backgroundColor: '#1F295A',
+  },
+  achievementLocked: {
+    backgroundColor: '#E7ECF7',
+  },
+  achievementTarget: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  achievementTitle: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  levelCard: {
+    borderRadius: 24,
+    padding: 18,
+  },
+  levelLabel: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  levelMeta: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F295A',
+  },
+  secondaryButton: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    backgroundColor: '#E8EEFF',
+  },
+  secondaryButtonWide: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingVertical: 14,
+    backgroundColor: '#E8EEFF',
+  },
+  secondaryButtonText: {
+    color: '#1F295A',
+    fontWeight: '800',
+  },
+  activityCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 18,
+    shadowColor: '#1C2A4D',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 2,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  activityIndex: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: '#8A96AF',
+    fontWeight: '800',
+  },
+  activityDone: {
+    color: '#1FA67A',
+    fontWeight: '800',
+  },
+  activityPending: {
+    color: '#D07C3A',
+    fontWeight: '800',
+  },
+  activityTitle: {
+    marginTop: 10,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  activityObjective: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4A78C2',
+  },
+  activityDescription: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#52607A',
+  },
+  activityHero: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 22,
+    borderWidth: 2,
+  },
+  reinforcementRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  reinforcementBadge: {
+    backgroundColor: '#EEF5FF',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  reinforcementText: {
+    color: '#1F295A',
+    fontWeight: '700',
+  },
+  promptCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 20,
+    shadowColor: '#1C2A4D',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 3,
+  },
+  promptLabel: {
+    marginTop: 12,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: '#8A96AF',
+    fontWeight: '800',
+  },
+  promptText: {
+    marginTop: 8,
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#1F295A',
+    fontWeight: '600',
+  },
+  audioButton: {
+    marginTop: 16,
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: '#FFF0D9',
+  },
+  audioButtonText: {
+    color: '#B86B14',
+    fontWeight: '800',
+  },
+  audioBubble: {
+    marginTop: 12,
+    borderRadius: 18,
+    padding: 14,
+    backgroundColor: '#FFF7E8',
+  },
+  audioBubbleText: {
+    color: '#86571E',
+    fontWeight: '700',
+  },
+  optionList: {
+    marginTop: 18,
+    gap: 10,
+  },
+  optionCard: {
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#D5DDF0',
+    padding: 16,
+    backgroundColor: '#F8FAFF',
+  },
+  optionCardActive: {
+    borderColor: '#4A78C2',
+    backgroundColor: '#EAF2FF',
+  },
+  optionText: {
+    color: '#1F295A',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  optionTextActive: {
+    color: '#2E63B2',
+  },
+  sequenceArea: {
+    minHeight: 68,
+    marginTop: 12,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#C7D2EA',
+    backgroundColor: '#FBFCFF',
+    padding: 12,
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  sequencePlaceholder: {
+    color: '#8391AC',
+    fontWeight: '600',
+  },
+  sequenceChip: {
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: '#D9F3EC',
+  },
+  sequenceChipText: {
+    color: '#145C4D',
+    fontWeight: '800',
+  },
+  bankArea: {
+    marginTop: 12,
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  bankChip: {
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: '#EEF2FF',
+  },
+  bankChipDisabled: {
+    opacity: 0.45,
+  },
+  bankChipText: {
+    color: '#36466E',
+    fontWeight: '800',
+  },
+  primaryButton: {
+    marginTop: 20,
+    borderRadius: 22,
+    backgroundColor: '#1F295A',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  primaryButtonWide: {
+    flex: 1,
+    borderRadius: 20,
+    backgroundColor: '#1F295A',
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  feedbackCard: {
+    marginTop: 18,
+    borderRadius: 22,
+    padding: 16,
+  },
+  feedbackSuccess: {
+    backgroundColor: '#D9F7EB',
+  },
+  feedbackError: {
+    backgroundColor: '#FFE1E1',
+  },
+  feedbackWarning: {
+    backgroundColor: '#FFF4CF',
+  },
+  feedbackTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1F295A',
+  },
+  feedbackMessage: {
+    marginTop: 8,
+    color: '#44506C',
+    lineHeight: 21,
+    fontWeight: '600',
+  },
+  celebrationText: {
+    marginTop: 8,
+    color: '#188961',
+    fontWeight: '800',
+  },
+  adaptiveCard: {
+    marginTop: 16,
+    borderRadius: 20,
+    backgroundColor: '#F1F7FF',
+    padding: 16,
+  },
+  adaptiveTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#2456A6',
+  },
+  adaptiveBody: {
+    marginTop: 8,
+    color: '#466385',
+    lineHeight: 21,
+    fontWeight: '600',
+  },
+  navRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  floatingAchievement: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 20,
+    borderRadius: 18,
+    backgroundColor: '#1F295A',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  floatingAchievementText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontWeight: '800',
+  },
+});
+
+export default App;

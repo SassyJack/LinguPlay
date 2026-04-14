@@ -1,0 +1,67 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.expo/
+.expo-shared/
+*.jsbundle
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+jest-junit.xml
+coverage.html
+
+# React Native / Expo
+.watchman_file_placeholder
+*.ipa
+*.apk
+android/
+ios/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# Project specific
+_bmad-output/
+_bmad/
+.agents/
+skills/
+agents/
+workflows/

@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "LinguaPlay",
+    "slug": "linguaplay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": ["android", "ios", "web"],
+    "assetBundlePatterns": ["**/*"],
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
