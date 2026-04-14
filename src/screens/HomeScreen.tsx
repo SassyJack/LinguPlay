@@ -1,64 +1,115 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
 } from 'react-native';
-import { Button, Text, Container} from '@/components';
+import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 
-export const HomeScreen: React.FC = () => {
+/**
+ * HomeScreen - Main welcome hub showing personalized greeting,
+ * user statistics, and primary CTAs for navigation
+ */
+interface HomeScreenProps {
+  testID?: string;
+}
+
+export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }) => {
   const { theme } = useTheme();
   const { score, stars, completionPercentage } = useGame();
-  const { user, isPremium } = useUser();
-  const { navigateTo } = useUI();
+  const { user, isPremium, attemptsRemaining } = useUser();
+  const { navigateTo, showToast } = useUI();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  const onRefresh = React.useCallback(() => {
+  // Memoized callbacks for performance
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    // Simulate data refresh
-    setTimeout(() => setRefreshing(false), 1000);
+    const timer = setTimeout(() => setRefreshing(false), 1000);
+    return () => clearTimeout(timer);
   }, []);
+
+  const handleStartActivity = useCallback(() => {
+    if (!user) {
+      showToast('Por favor inicia sesión', 'warning');
+      return;
+    }
+    navigateTo('component');
+  }, [user, navigateTo, showToast]);
+
+  const handleViewProgress = useCallback(() => {
+    navigateTo('results');
+  }, [navigateTo]);
+
+  // Memoized computed values
+  const completionPercentageText = useMemo(
+    () => completionPercentage.toFixed(0),
+    [completionPercentage]
+  );
+
+  const displayName = useMemo(
+    () => user?.displayName || 'Estudiante',
+    [user?.displayName]
+  );
 
   return (
     <Container
       style={{ backgroundColor: theme.colors.background }}
-      testID="home-screen"
+      testID={testID}
     >
       <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        testID="home-scroll-view"
+        accessible={true}
+        accessibilityLabel="Contenido principal"
       >
         {/* Header Welcome */}
-        <View style={styles.header}>
-          <Text variant="h1" color={theme.colors.primary}>
+        <View
+          style={styles.header}
+          testID="home-header"
+          accessible={true}
+          accessibilityLabel={`Bienvenido ${displayName}${isPremium ? ' Premium' : ''}`}
+        >
+          <Text
+            variant="h1"
+            color={theme.colors.primary}
+            testID="welcome-text"
+          >
             ¡Bienvenido a LinguaPlay!
           </Text>
-          {user && (
-            <Text variant="body" color={theme.colors.onBackground}>
-              {user.displayName}
-              {isPremium && ' 👑'}
-            </Text>
-          )}
+          <Text
+            variant="body"
+            color={theme.colors.onBackground}
+            testID="user-name"
+          >
+            {displayName}
+            {isPremium && ' 👑'}
+          </Text>
         </View>
 
         {/* Stats Cards */}
-        <View style={styles.statsContainer}>
+        <View
+          style={styles.statsContainer}
+          testID="stats-container"
+          accessible={true}
+          accessibilityLabel="Estadísticas de usuario"
+        >
           {/* Score Card */}
           <View
             style={[
               styles.statCard,
               { backgroundColor: theme.colors.surface },
             ]}
+            testID="score-card"
+            accessible={true}
+            accessibilityLabel={`Puntos: ${score}`}
           >
             <Text variant="h3" color={theme.colors.primary}>
               Puntos
             </Text>
-            <Text variant="h2" color={theme.colors.primary}>
+            <Text variant="h2" color={theme.colors.primary} testID="score-value">
               {score}
             </Text>
           </View>
@@ -69,11 +120,14 @@ export const HomeScreen: React.FC = () => {
               styles.statCard,
               { backgroundColor: theme.colors.surface },
             ]}
+            testID="stars-card"
+            accessible={true}
+            accessibilityLabel={`Estrellas: ${stars}`}
           >
             <Text variant="h3" color={theme.colors.accent}>
               Estrellas
             </Text>
-            <Text variant="h2" color={theme.colors.accent}>
+            <Text variant="h2" color={theme.colors.accent} testID="stars-value">
               {stars}⭐
             </Text>
           </View>
@@ -84,34 +138,51 @@ export const HomeScreen: React.FC = () => {
               styles.statCard,
               { backgroundColor: theme.colors.surface },
             ]}
+            testID="progress-card"
+            accessible={true}
+            accessibilityLabel={`Progreso: ${completionPercentageText} porciento`}
           >
             <Text variant="h3" color={theme.colors.success}>
               Progreso
             </Text>
-            <Text variant="h2" color={theme.colors.success}>
-              {completionPercentage.toFixed(0)}%
+            <Text
+              variant="h2"
+              color={theme.colors.success}
+              testID="progress-value"
+            >
+              {completionPercentageText}%
             </Text>
           </View>
         </View>
 
         {/* Main CTA */}
-        <View style={styles.actionContainer}>
+        <View
+          style={styles.actionContainer}
+          testID="action-container"
+          accessible={true}
+          accessibilityLabel="Acciones principales"
+        >
           <Button
             title="Comenzar Actividad"
-            onPress={() => navigateTo('component')}
+            onPress={handleStartActivity}
             variant="primary"
             testID="start-button"
           />
           <Button
             title="Mi Progreso"
-            onPress={() => navigateTo('results')}
+            onPress={handleViewProgress}
             variant="secondary"
             testID="progress-button"
           />
         </View>
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
+        <View
+          style={styles.infoSection}
+          testID="info-section"
+          accessible={true}
+          accessibilityLabel="Información del sistema"
+        >
           <Text variant="h3" color={theme.colors.onBackground}>
             📚 Cómo Funciona
           </Text>
@@ -123,16 +194,22 @@ export const HomeScreen: React.FC = () => {
             Selecciona un componente de lenguaje, completa los niveles y gana
             puntos. Acumula estrellas para desbloquear logros especiales.
           </Text>
-          {!isPremium && (
+          <View
+            style={styles.attemptsBanner}
+            testID="attempts-banner"
+            accessible={true}
+            accessibilityLabel={`Intentos disponibles: ${attemptsRemaining}`}
+          >
             <Text
               variant="caption"
-              color={theme.colors.warning}
+              color={isPremium ? theme.colors.success : theme.colors.warning}
               style={{ marginTop: 8 }}
             >
-              💡 Tienes 5 intentos diarios. Suscríbete a Premium para intentos
-              ilimitados.
+              {isPremium
+                ? '✓ Premium: Intentos ilimitados'
+                : `💡 Intentos hoy: ${attemptsRemaining}`}
             </Text>
-          )}
+          </View>
         </View>
       </ScrollView>
     </Container>
@@ -162,6 +239,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    minHeight: 100,
   },
   actionContainer: {
     paddingHorizontal: 16,
@@ -174,6 +252,9 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
+  },
+  attemptsBanner: {
+    padding: 8,
   },
 });
 

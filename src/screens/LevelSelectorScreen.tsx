@@ -1,22 +1,27 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
 } from 'react-native';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
 
+/**
+ * LevelSelectorScreen - Show 3 difficulty levels for selected component
+ * Displays individual progress tracking and age recommendations per level
+ */
 interface LevelSelectorProps {
   componentId?: string;
+  testID?: string;
 }
 
 export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
   componentId,
+  testID = 'level-selector-screen',
 }) => {
   const { theme } = useTheme();
   const { navigateTo, goBack, selectedComponentId } = useUI();
@@ -29,44 +34,69 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
     [currentComponentId]
   );
 
-  const handleSelectLevel = (levelId: string) => {
-    if (currentComponentId) {
-      navigateTo('activity', {
-        componentId: currentComponentId,
-        levelId,
-      });
-    }
-  };
-
-  const getLevelProgress = (componentId: string, levelId: string) => {
-    const component = components.find((c) => c.id === componentId);
-    if (!component) return 0;
-
-    const level = component.levels.find((l: any) => l.id === levelId);
-    if (!level) return 0;
-
-    let total = level.activities.length;
-    let completed = 0;
-
-    level.activities.forEach((activity: any) => {
-      if (completedActivities[activity.id]) {
-        completed++;
+  // Memoized callback
+  const handleSelectLevel = useCallback(
+    (levelId: string) => {
+      if (currentComponentId) {
+        navigateTo('activity', {
+          componentId: currentComponentId,
+          levelId,
+        });
       }
-    });
+    },
+    [currentComponentId, navigateTo]
+  );
 
-    return total > 0 ? (completed / total) * 100 : 0;
-  };
+  const handleGoBack = useCallback(() => {
+    goBack();
+  }, [goBack]);
 
+  // Memoized progress calculation
+  const getLevelProgress = useCallback(
+    (componentId: string, levelId: string) => {
+      const component = components.find((c) => c.id === componentId);
+      if (!component) return 0;
+
+      const level = component.levels.find((l: any) => l.id === levelId);
+      if (!level) return 0;
+
+      let total = level.activities.length;
+      let completed = 0;
+
+      level.activities.forEach((activity: any) => {
+        if (completedActivities?.[activity.id]) {
+          completed++;
+        }
+      });
+
+      return total > 0 ? (completed / total) * 100 : 0;
+    },
+    [completedActivities]
+  );
+
+  // Error state
   if (!currentComponent) {
     return (
-      <Container testID="level-selector-screen">
+      <Container
+        testID={testID}
+      >
         <View style={styles.centerContent}>
-          <Text variant="h2">Componente no encontrado</Text>
-          <View style={{ marginTop: 16 }}>
+          <Text variant="h2" testID="level-error-title">
+            ⚠️ Componente no encontrado
+          </Text>
+          <Text
+            variant="body"
+            style={[styles.errorText, { marginTop: 12 }]}
+            testID="level-error-message"
+          >
+            Por favor intenta seleccionar otro componente
+          </Text>
+          <View style={{ marginTop: 16, width: '100%', paddingHorizontal: 16 }}>
             <Button
               title="Volver"
-              onPress={goBack}
+              onPress={handleGoBack}
               variant="primary"
+              testID="error-back-button"
             />
           </View>
         </View>
@@ -77,28 +107,43 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
   return (
     <Container
       style={{ backgroundColor: theme.colors.background }}
-      testID="level-selector-screen"
+      testID={testID}
     >
-      <View style={styles.header}>
+      <View
+        style={styles.header}
+        testID="level-header"
+      >
         <Button
           title="← Atrás"
-          onPress={goBack}
+          onPress={handleGoBack}
           variant="outline"
           testID="back-button"
         />
         <View style={styles.headerTitle}>
-          <Text variant="h2" color={currentComponent.accent}>
+          <Text
+            variant="h2"
+            color={currentComponent.accent}
+            testID="component-title"
+          >
             {currentComponent.title}
           </Text>
-          <Text variant="caption" color={theme.colors.onSurface}>
+          <Text
+            variant="caption"
+            color={theme.colors.onSurface}
+            testID="component-subtitle"
+          >
             {currentComponent.subtitle}
           </Text>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        testID="levels-scroll-view"
+      >
         {currentComponent.levels.map((level: any, index: number) => {
           const progress = getLevelProgress(currentComponent.id, level.id);
+          const progressPercentage = progress.toFixed(0);
           const isCompleted = progress === 100;
 
           return (
@@ -107,23 +152,28 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
               style={[
                 styles.levelCard,
                 {
-                  backgroundColor: level.color + '20',
-                  borderLeftColor: level.color,
+                  backgroundColor: level.color + '20' || '#F3F4F6',
+                  borderLeftColor: level.color || theme.colors.primary,
                 },
               ]}
               onPress={() => handleSelectLevel(level.id)}
               testID={`level-card-${level.id}`}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`${level.difficulty}: ${progressPercentage}% completado${isCompleted ? ', completado' : ''}`}
             >
               {/* Level indicator */}
               <View
                 style={[
                   styles.levelIndicator,
-                  { backgroundColor: level.color },
+                  { backgroundColor: level.color || theme.colors.primary },
                 ]}
+                testID={`level-indicator-${level.id}`}
               >
                 <Text
                   variant="h2"
                   style={{ color: '#FFFFFF', textAlign: 'center' }}
+                  testID={`level-number-${level.id}`}
                 >
                   {index + 1}
                 </Text>
@@ -133,19 +183,28 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
               <View style={styles.levelContent}>
                 <View style={styles.levelHeader}>
                   <View>
-                    <Text variant="h3" color={level.color}>
+                    <Text
+                      variant="h3"
+                      color={level.color || theme.colors.primary}
+                      testID={`level-label-${level.id}`}
+                    >
                       {level.label}
                     </Text>
                     <Text
                       variant="caption"
                       color={theme.colors.onSurface}
                       style={{ marginTop: 4 }}
+                      testID={`level-difficulty-${level.id}`}
                     >
-                      Dificultad: {level.difficulty} • Edad: {level.age}+
+                      {level.difficulty} • {level.age || '5'}+
                     </Text>
                   </View>
                   {isCompleted && (
-                    <Text variant="h2" style={{ marginLeft: 12 }}>
+                    <Text
+                      variant="h2"
+                      style={{ marginLeft: 12 }}
+                      testID={`completion-badge-${level.id}`}
+                    >
                       ✓
                     </Text>
                   )}
@@ -155,17 +214,21 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
                 <View
                   style={[
                     styles.progressBar,
-                    { backgroundColor: theme.colors.gray200 },
+                    { backgroundColor: theme.colors.gray200 || '#E5E7EB' },
                   ]}
+                  testID={`level-progress-bar-${level.id}`}
+                  accessible={true}
+                  accessibilityLabel={`Progreso: ${progressPercentage}%`}
                 >
                   <View
                     style={[
                       styles.progressFill,
                       {
-                        backgroundColor: level.color,
+                        backgroundColor: level.color || theme.colors.primary,
                         width: `${Math.min(progress, 100)}%`,
                       },
                     ]}
+                    testID={`level-progress-fill-${level.id}`}
                   />
                 </View>
 
@@ -174,41 +237,14 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
                   variant="caption"
                   color={theme.colors.onSurface}
                   style={{ marginTop: 8 }}
+                  testID={`level-progress-text-${level.id}`}
                 >
-                  {Math.round(progress)}% • {2} actividades
+                  {progressPercentage}% • 2 actividades
                 </Text>
               </View>
             </TouchableOpacity>
           );
         })}
-
-        {/* Tips section */}
-        <View
-          style={[
-            styles.tipsCard,
-            { backgroundColor: theme.colors.surfaceVariant },
-          ]}
-        >
-          <Text variant="h3" color={theme.colors.onBackground}>
-            📝 Información
-          </Text>
-          <Text
-            variant="body"
-            color={theme.colors.onSurface}
-            style={{ marginTop: 8 }}
-          >
-            Este componente contiene {currentComponent.levels.length} niveles
-            con diferentes dificultades. Comienza desde el nivel básico y avanza
-            progresivamente.
-          </Text>
-          <Text
-            variant="caption"
-            color={theme.colors.success}
-            style={{ marginTop: 8 }}
-          >
-            💚 Completa todos los niveles para dominar este componente.
-          </Text>
-        </View>
       </ScrollView>
     </Container>
   );
@@ -230,11 +266,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     paddingBottom: 32,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   levelCard: {
     borderRadius: 12,
@@ -281,6 +312,13 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 16,
   },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  errorText: {
+    textAlign: 'center',
+  },
 });
-
-export default LevelSelectorScreen;

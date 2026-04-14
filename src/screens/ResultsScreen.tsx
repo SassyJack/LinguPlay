@@ -1,76 +1,130 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
 
-export const ResultsScreen: React.FC = () => {
+/**
+ * ResultsScreen - Analytics dashboard showing overall and per-component progress
+ * Displays statistics with visual progress representations
+ */
+interface ResultsScreenProps {
+  testID?: string;
+}
+
+export const ResultsScreen: React.FC<ResultsScreenProps> = ({
+  testID = 'results-screen',
+}) => {
   const { theme } = useTheme();
   const { navigateTo, goBack } = useUI();
-  const { score, stars, completionPercentage, activitiesCompleted } =
+  const { score, stars, completionPercentage, activitiesCompleted, completedActivities } =
     useGame();
 
-  const totalActivities = components.reduce(
-    (acc, component: any) =>
-      acc +
-      component.levels.reduce(
-        (levelAcc: number, level: any) => levelAcc + level.activities.length,
+  // Memoized callback
+  const handleGoBack = useCallback(() => {
+    goBack();
+  }, [goBack]);
+
+  const handleNavigateHome = useCallback(() => {
+    navigateTo('home');
+  }, [navigateTo]);
+
+  // Memoized calculations
+  const totalActivities = useMemo(
+    () =>
+      components.reduce(
+        (acc, component: any) =>
+          acc +
+          component.levels.reduce(
+            (levelAcc: number, level: any) => levelAcc + level.activities.length,
+            0
+          ),
         0
       ),
-    0
+    []
   );
 
-  const getComponentStats = (componentId: string) => {
-    const component = components.find((c) => c.id === componentId);
-    if (!component) return { total: 0, completed: 0, percentage: 0 };
+  const completionPercentageText = useMemo(
+    () => completionPercentage.toFixed(0),
+    [completionPercentage]
+  );
 
-    let total = 0;
-    let completed = 0;
+  // Memoized component stats
+  const componentStats = useMemo(
+    () =>
+      components.map((component: any) => {
+        let total = 0;
+        let completed = 0;
 
-    component.levels.forEach((level: any) => {
-      level.activities.forEach((activity: any) => {
-        total++;
-        // Would need access to completedActivities from store
-        // This is a simplified version
-      });
-    });
+        component.levels.forEach((level: any) => {
+          level.activities.forEach((activity: any) => {
+            total++;
+            if (completedActivities?.[activity.id]) {
+              completed++;
+            }
+          });
+        });
 
-    return {
-      total,
-      completed: Math.floor((total * completionPercentage) / 100),
-      percentage:
-        total > 0 ? Math.round((Math.floor((total * completionPercentage) / 100) / total) * 100) : 0,
-    };
-  };
+        return {
+          name: component.title,
+          total,
+          completed,
+          percentage: total > 0 ? (completed / total) * 100 : 0,
+          accent: component.accent,
+        };
+      }),
+    [completedActivities]
+  );
 
   return (
     <Container
       style={{ backgroundColor: theme.colors.background }}
-      testID="results-screen"
+      testID={testID}
     >
-      <View style={styles.header}>
+      <View
+        style={styles.header}
+        testID="results-header"
+        accessible={true}
+        accessibilityLabel="Encabezado"
+      >
         <Button
           title="← Atrás"
-          onPress={goBack}
+          onPress={handleGoBack}
           variant="outline"
           testID="back-button"
         />
-        <Text variant="h2" color={theme.colors.onBackground}>
+        <Text
+          variant="h2"
+          color={theme.colors.onBackground}
+          testID="header-title"
+        >
           Mi Progreso
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        testID="results-scroll-view"
+      >
         {/* Overall Stats */}
-        <View style={[styles.statsGrid, { backgroundColor: theme.colors.surface }]}>
+        <View
+          style={[styles.statsGrid, { backgroundColor: theme.colors.surface }]}
+          testID="overall-stats"
+          accessible={true}
+          accessibilityLabel="Estadísticas generales"
+        >
           {/* Puntos */}
-          <View style={styles.statItem}>
+          <View
+            style={styles.statItem}
+            testID="score-stat"
+            accessible={true}
+            accessibilityLabel={`Puntos: ${score}`}
+          >
             <Text variant="h3" color={theme.colors.primary}>
               Puntos
             </Text>
@@ -78,13 +132,19 @@ export const ResultsScreen: React.FC = () => {
               variant="h1"
               color={theme.colors.primary}
               style={{ marginTop: 8 }}
+              testID="score-value"
             >
               {score}
             </Text>
           </View>
 
           {/* Estrellas */}
-          <View style={styles.statItem}>
+          <View
+            style={styles.statItem}
+            testID="stars-stat"
+            accessible={true}
+            accessibilityLabel={`Estrellas: ${stars}`}
+          >
             <Text variant="h3" color={theme.colors.accent}>
               Estrellas
             </Text>
@@ -92,13 +152,19 @@ export const ResultsScreen: React.FC = () => {
               variant="h1"
               color={theme.colors.accent}
               style={{ marginTop: 8 }}
+              testID="stars-value"
             >
               {stars}⭐
             </Text>
           </View>
 
           {/* Actividades */}
-          <View style={styles.statItem}>
+          <View
+            style={styles.statItem}
+            testID="activities-stat"
+            accessible={true}
+            accessibilityLabel={`Actividades completadas: ${activitiesCompleted}`}
+          >
             <Text variant="h3" color={theme.colors.info}>
               Actividades
             </Text>
@@ -106,6 +172,7 @@ export const ResultsScreen: React.FC = () => {
               variant="h1"
               color={theme.colors.info}
               style={{ marginTop: 8 }}
+              testID="activities-value"
             >
               {activitiesCompleted}
             </Text>
@@ -118,21 +185,33 @@ export const ResultsScreen: React.FC = () => {
             styles.progressCard,
             { backgroundColor: theme.colors.surface },
           ]}
+          testID="overall-progress"
+          accessible={true}
+          accessibilityLabel={`Progreso general: ${completionPercentageText}%`}
         >
           <View style={styles.progressHeader}>
-            <Text variant="h3" color={theme.colors.onBackground}>
+            <Text
+              variant="h3"
+              color={theme.colors.onBackground}
+              testID="progress-title"
+            >
               Progreso General
             </Text>
-            <Text variant="h2" color={theme.colors.success}>
-              {completionPercentage.toFixed(0)}%
+            <Text
+              variant="h2"
+              color={theme.colors.success}
+              testID="progress-percentage"
+            >
+              {completionPercentageText}%
             </Text>
           </View>
 
           <View
             style={[
               styles.progressBar,
-              { backgroundColor: theme.colors.gray200 },
+              { backgroundColor: theme.colors.gray200 || '#E5E7EB' },
             ]}
+            testID="overall-progress-bar"
           >
             <View
               style={[
@@ -142,6 +221,7 @@ export const ResultsScreen: React.FC = () => {
                   width: `${Math.min(completionPercentage, 100)}%`,
                 },
               ]}
+              testID="overall-progress-fill"
             />
           </View>
 
@@ -149,76 +229,99 @@ export const ResultsScreen: React.FC = () => {
             variant="caption"
             color={theme.colors.onSurface}
             style={{ marginTop: 12 }}
+            testID="progress-text"
           >
-            {activitiesCompleted} de {totalActivities} actividades
-            completadas
+            {activitiesCompleted} de {totalActivities} actividades completadas
           </Text>
         </View>
 
         {/* Components Progress */}
-        <Text variant="h3" style={{ marginTop: 24, marginBottom: 12 }}>
+        <Text
+          variant="h3"
+          style={{ marginTop: 24, marginBottom: 12 }}
+          testID="components-title"
+        >
           Progreso por Componente
         </Text>
 
-        {components.map((component: any) => {
-          const stats = getComponentStats(component.id);
-          const localProgress = (stats.completed / stats.total) * 100 || 0;
-
-          return (
-            <View
-              key={component.id}
-              style={[
-                styles.componentProgressCard,
-                { backgroundColor: component.accent + '10' },
-              ]}
-            >
-              <View style={styles.componentHeader}>
-                <View>
-                  <Text variant="h3" color={component.accent}>
-                    {component.title}
-                  </Text>
-                  <Text
-                    variant="caption"
-                    color={theme.colors.onSurface}
-                    style={{ marginTop: 4 }}
-                  >
-                    {Math.round(localProgress)}% completado
-                  </Text>
-                </View>
-                <Text variant="h2" color={component.accent}>
-                  {Math.round(localProgress)}%
+        {componentStats.map((stats: any, index: number) => (
+          <View
+            key={index}
+            style={[
+              styles.componentProgressCard,
+              { backgroundColor: stats.accent + '10' || '#F3F4F6' },
+            ]}
+            testID={`component-progress-${index}`}
+            accessible={true}
+            accessibilityLabel={`${stats.name}: ${stats.percentage.toFixed(0)}% completado`}
+          >
+            <View style={styles.componentHeader}>
+              <View>
+                <Text
+                  variant="h3"
+                  color={stats.accent || '#1F2937'}
+                  testID={`component-name-${index}`}
+                >
+                  {stats.name}
+                </Text>
+                <Text
+                  variant="caption"
+                  color={theme.colors.onSurface}
+                  style={{ marginTop: 4 }}
+                  testID={`component-status-${index}`}
+                >
+                  {stats.completed} de {stats.total} actividades
                 </Text>
               </View>
+              <Text
+                variant="h2"
+                color={stats.accent || '#1F2937'}
+                testID={`component-percentage-${index}`}
+              >
+                {stats.percentage.toFixed(0)}%
+              </Text>
+            </View>
 
+            <View
+              style={[
+                styles.progressBar,
+                { backgroundColor: theme.colors.gray200 || '#E5E7EB' },
+              ]}
+              testID={`component-progress-bar-${index}`}
+            >
               <View
                 style={[
-                  styles.progressBar,
-                  { backgroundColor: theme.colors.gray200 },
+                  styles.progressFill,
+                  {
+                    backgroundColor: stats.accent || '#1F2937',
+                    width: `${Math.min(stats.percentage, 100)}%`,
+                  },
                 ]}
-              >
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      backgroundColor: component.accent,
-                      width: `${Math.min(localProgress, 100)}%`,
-                    },
-                  ]}
-                />
-              </View>
+                testID={`component-progress-fill-${index}`}
+              />
             </View>
-          );
-        })}
+          </View>
+        ))}
 
         {/* Achievements */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="h3" color={theme.colors.onBackground}>
+        <View
+          style={[styles.card, { backgroundColor: theme.colors.surface }]}
+          testID="achievements-section"
+          accessible={true}
+          accessibilityLabel="Logros desbloqueados"
+        >
+          <Text
+            variant="h3"
+            color={theme.colors.onBackground}
+            testID="achievements-title"
+          >
             🏆 Logros Desbloqueados
           </Text>
           <Text
             variant="body"
             color={theme.colors.onSurface}
             style={{ marginTop: 8 }}
+            testID="achievements-message"
           >
             Completa más actividades para desbloquear nuevos logros y
             recompensas especiales.
@@ -226,11 +329,17 @@ export const ResultsScreen: React.FC = () => {
         </View>
 
         {/* Action Button */}
-        <View style={styles.actionContainer}>
+        <View
+          style={styles.actionContainer}
+          testID="action-container"
+          accessible={true}
+          accessibilityLabel="Botones de acción"
+        >
           <Button
             title="Continuar Aprendiendo"
-            onPress={() => navigateTo('component')}
+            onPress={handleNavigateHome}
             variant="primary"
+            testID="continue-button"
           />
         </View>
       </ScrollView>
@@ -246,6 +355,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    gap: 12,
   },
   container: {
     padding: 16,
@@ -309,8 +419,6 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     marginTop: 24,
-    marginBottom: 16,
+    gap: 12,
   },
 });
-
-export default ResultsScreen;
