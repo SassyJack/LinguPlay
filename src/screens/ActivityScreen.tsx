@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,20 +11,32 @@ import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
 
+/**
+ * ActivityScreen - Interactive game activity with question/options/feedback flow
+ * Handles activity presentation, answer submission, and result display
+ */
 interface ActivityScreenProps {
   componentId?: string;
   levelId?: string;
   activityId?: string;
+  testID?: string;
 }
 
 export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   componentId,
   levelId,
   activityId,
+  testID = 'activity-screen',
 }) => {
   const { theme } = useTheme();
-  const { navigateTo, goBack, showToast, selectedComponentId, selectedLevelId, selectedActivityId } =
-    useUI();
+  const {
+    navigateTo,
+    goBack,
+    showToast,
+    selectedComponentId,
+    selectedLevelId,
+    selectedActivityId,
+  } = useUI();
   const { completeActivity, recordAttempt } = useGame();
   const { canAttemptActivity, incrementDailyAttempts } = useUser();
 
@@ -32,6 +44,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const currentComponentId = componentId || selectedComponentId;
   const currentLevelId = levelId || selectedLevelId;
@@ -47,16 +60,31 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     return level.activities.find((a: any) => a.id === currentActivityId);
   }, [currentComponentId, currentLevelId, currentActivityId]);
 
+  // Error state fallback
   if (!activity) {
     return (
-      <Container testID="activity-screen">
+      <Container
+        testID={testID}
+        accessible={true}
+        accessibilityLabel="Pantalla de error"
+      >
         <View style={styles.centerContent}>
-          <Text variant="h2">Actividad no encontrada</Text>
-          <View style={{ marginTop: 16 }}>
+          <Text variant="h2" testID="activity-error-title">
+            ⚠️ Actividad no encontrada
+          </Text>
+          <Text
+            variant="body"
+            style={[styles.errorText, { marginTop: 12 }]}
+            testID="activity-error-message"
+          >
+            Por favor intenta seleccionar otra actividad
+          </Text>
+          <View style={{ marginTop: 16, width: '100%', paddingHorizontal: 16 }}>
             <Button
               title="Volver"
-              onPress={goBack}
+              onPress={handleExit}
               variant="primary"
+              testID="error-back-button"
             />
           </View>
         </View>
@@ -64,72 +92,147 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     );
   }
 
-  const handleSubmit = async () => {
+  // Memoized callbacks for event handlers
+  const handleSubmit = useCallback(async () => {
+    // Validation checks
+    if (!activity) {
+      setError('Actividad no encontrada');
+      return;
+    }
+
     if (!canAttemptActivity()) {
-      showToast('Has llegado al límite de intentos diarios', 'warning');
+      showToast('Has llegado al límite de intentos hoy', 'warning');
       return;
     }
 
     if (!selectedOption) {
-      showToast('Selecciona una opción', 'info');
+      setError('Por favor selecciona una opción');
       return;
     }
 
+    setError(null);
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const correct = selectedOption === activity.correctAnswer;
-      setIsCorrect(correct);
-      setShowResult(true);
+    try {
+      // Simulate API call with error handling
+      const timer = setTimeout(() => {
+        try {
+          const correct = selectedOption === activity.correctAnswer;
+          setIsCorrect(correct);
+          setShowResult(true);
 
-      // Record attempt and update state
-      recordAttempt(currentComponentId || '', correct);
-      incrementDailyAttempts();
+          // Record attempt and update state
+          recordAttempt(currentComponentId || '', correct);
+          incrementDailyAttempts();
 
-      if (correct) {
-        completeActivity(activity.id, activity.reward || 10);
-        showToast('¡Correcto! +' + (activity.reward || 10) + ' puntos', 'success');
-      } else {
-        showToast('Intenta de nuevo', 'error');
-      }
+          if (correct) {
+            const reward = activity.reward || 10;
+            completeActivity(activity.id, reward);
+            showToast(`¡Correcto! +${reward} puntos`, 'success');
+          } else {
+            showToast('Intenta de nuevo', 'error');
+          }
+        } catch (updateError) {
+          setError('Error al guardar el intento');
+          showToast('Error al procesar', 'error');
+        }
+      }, 800);
 
+      return () => clearTimeout(timer);
+    } catch (err) {
+      setError('Error al procesar tu respuesta');
+      showToast('Algo salió mal', 'error');
+    } finally {
       setIsSubmitting(false);
-    }, 800);
-  };
+    }
+  }, [
+    activity,
+    canAttemptActivity,
+    selectedOption,
+    recordAttempt,
+    incrementDailyAttempts,
+    completeActivity,
+    currentComponentId,
+    showToast,
+  ]);
 
-  const handleContinue = () => {
-    // Navigate to next activity or level selector
-    navigateTo('activity', {
-      componentId: currentComponentId || '',
-      levelId: currentLevelId || '',
-    });
-  };
+  const handleContinue = useCallback(() => {
+    if (isCorrect) {
+      navigateTo('activity', {
+        componentId: currentComponentId || '',
+        levelId: currentLevelId || '',
+      });
+    } else {
+      // Reset for retry
+      setShowResult(false);
+      setSelectedOption(null);
+      setError(null);
+    }
+  }, [isCorrect, navigateTo, currentComponentId, currentLevelId]);
+
+  const handleSelectOption = useCallback((option: string) => {
+    setSelectedOption(option);
+    setError(null);
+  }, []);
+
+  const handleExit = useCallback(() => {
+    goBack();
+  }, [goBack]);
 
   return (
     <Container
       style={{ backgroundColor: theme.colors.background }}
-      testID="activity-screen"
+      testID={testID}
+      accessible={true}
+      accessibilityLabel={`Actividad: ${activity.title}`}
     >
-      <View style={styles.header}>
+      <View
+        style={styles.header}
+        testID="activity-header"
+        accessible={true}
+        accessibilityLabel="Encabezado de actividad"
+      >
         <Button
           title="← Salir"
-          onPress={goBack}
+          onPress={handleExit}
           variant="outline"
           testID="exit-button"
         />
-        <Text variant="h3" color={theme.colors.onBackground}>
+        <Text
+          variant="h3"
+          color={theme.colors.onBackground}
+          testID="activity-title"
+        >
           {activity.title}
         </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
+        {/* Error Message */}
+        {error && (
+          <View
+            style={[styles.card, { backgroundColor: theme.colors.error + '15' }]}
+            testID="error-message"
+            accessible={true}
+            accessibilityLabel={`Error: ${error}`}
+          >
+            <Text variant="body" color={theme.colors.error}>
+              ⚠️ {error}
+            </Text>
+          </View>
+        )}
+
         {/* Instruction */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+        <View
+          style={[styles.card, { backgroundColor: theme.colors.surface }]}
+          testID="instruction-card"
+          accessible={true}
+          accessibilityLabel="Instrucciones"
+        >
           <Text variant="h3" color={theme.colors.primary}>
             📝 Instrucción
           </Text>
-          <Text variant="body" style={{ marginTop: 8 }}>
+          <Text variant="body" style={{ marginTop: 8 }} testID="instruction-text">
             {activity.instruction}
           </Text>
           {activity.supportText && (
@@ -137,6 +240,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               variant="caption"
               color={theme.colors.info}
               style={{ marginTop: 8 }}
+              testID="support-text"
             >
               💡 {activity.supportText}
             </Text>
@@ -153,16 +257,31 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               borderLeftColor: theme.colors.primary,
             },
           ]}
+          testID="prompt-card"
+          accessible={true}
+          accessibilityLabel="Pregunta"
         >
-          <Text variant="h2" color={theme.colors.primary}>
+          <Text
+            variant="h2"
+            color={theme.colors.primary}
+            testID="prompt-text"
+          >
             {activity.prompt}
           </Text>
         </View>
 
         {/* Options */}
         {!showResult && activity.options && (
-          <View>
-            <Text variant="h3" style={{ marginBottom: 12, marginTop: 16 }}>
+          <View
+            testID="options-container"
+            accessible={true}
+            accessibilityLabel="Opciones de respuesta"
+          >
+            <Text
+              variant="h3"
+              style={{ marginBottom: 12, marginTop: 16 }}
+              testID="options-label"
+            >
               Opciones:
             </Text>
             {activity.options.map((option: string, index: number) => (
@@ -175,11 +294,18 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
                       selectedOption === option
                         ? theme.colors.primary
                         : theme.colors.surface,
-                    borderColor: theme.colors.primary,
+                    borderColor:
+                      selectedOption === option
+                        ? theme.colors.primary
+                        : theme.colors.gray300 || '#D1D5DB',
+                    borderWidth: 2,
                   },
                 ]}
-                onPress={() => setSelectedOption(option)}
+                onPress={() => handleSelectOption(option)}
                 testID={`option-${index}`}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`Opción ${index + 1}: ${option}${selectedOption === option ? ' seleccionada' : ''}`}
               >
                 <Text
                   variant="body"

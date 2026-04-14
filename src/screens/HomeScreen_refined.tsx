@@ -10,8 +10,8 @@ import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 
 /**
- * HomeScreen - Main welcome hub showing personalized greeting,
- * user statistics, and primary CTAs for navigation
+ * HomeScreen - Main welcome and statistics dashboard
+ * Displays user greeting, statistics, and primary CTAs
  */
 interface HomeScreenProps {
   testID?: string;
@@ -24,9 +24,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   const { navigateTo, showToast } = useUI();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  // Memoized callbacks for performance
+  // Memoized event handlers
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    // Simulate data refresh
     const timer = setTimeout(() => setRefreshing(false), 1000);
     return () => clearTimeout(timer);
   }, []);
@@ -199,7 +200,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
             style={styles.attemptsBanner}
             testID="attempts-banner"
             accessible={true}
-            accessibilityLabel={`Intentos disponibles: ${attemptsRemaining}`}
+            accessibilityLabel={`Intentos disponibles hoy: ${attemptsRemaining}`}
           >
             <Text
               variant="caption"
@@ -207,8 +208,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
               style={{ marginTop: 8 }}
             >
               {isPremium
-                ? '✓ Premium: Intentos ilimitados'
-                : `💡 Intentos hoy: ${attemptsRemaining}`}
+                ? '✓ Premium desbloqueado: Intentos ilimitados'
+                : `💡 Intentos disponibles hoy: ${attemptsRemaining}`}
             </Text>
           </View>
         </View>
@@ -258,5 +259,3 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 });
-
-export default HomeScreen;
