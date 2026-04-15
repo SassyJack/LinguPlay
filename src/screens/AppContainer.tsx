@@ -201,16 +201,12 @@ export const AppContainer: React.FC = () => {
           <HomeScreen testID="home-screen" />
         );
       case 'activity':
-        return selectedActivityId ? (
-          <ActivityScreen
-            componentId={selectedComponentId || ''}
-            levelId={selectedLevelId || ''}
-            activityId={selectedActivityId}
-            testID="activity-screen"
-          />
-        ) : (
-          <HomeScreen testID="home-screen" />
-        );
+        return <ActivityScreen
+          componentId={selectedComponentId || ''}
+          levelId={selectedLevelId || ''}
+          activityId={selectedActivityId || ''}
+          testID="activity-screen"
+        />;
       case 'results':
         return <ResultsScreen testID="results-screen" />;
       default:

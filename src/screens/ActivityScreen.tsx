@@ -60,7 +60,10 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     const level = component.levels.find((l: any) => l.id === currentLevelId);
     if (!level) return null;
 
-    return level.activities.find((a: any) => a.id === currentActivityId);
+    // If no specific activity ID, get the first activity in the level
+    const targetActivityId = currentActivityId || (level.activities[0]?.id || null);
+    
+    return level.activities.find((a: any) => a.id === targetActivityId);
   }, [currentComponentId, currentLevelId, currentActivityId]);
 
   // Memoized callbacks for event handlers - defined before error boundary
