@@ -8,3 +8,4 @@ export { ComponentSelectorScreen } from './ComponentSelectorScreen';
 export { LevelSelectorScreen } from './LevelSelectorScreen';
 export { ActivityScreen } from './ActivityScreen';
 export { ResultsScreen } from './ResultsScreen';
+export { AppContainer } from './AppContainer';

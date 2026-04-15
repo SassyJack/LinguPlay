@@ -1,8 +1,11 @@
 import { create } from 'zustand';
+import { persistUserState } from './persistence';
 
 /**
  * User store state and actions
  * Manages user authentication, preferences, and subscription tier
+ * Persists: user, subscriptionTier, theme
+ * Does NOT persist: attemptsUsedToday (resets daily)
  */
 
 export interface User {
@@ -20,6 +23,7 @@ export interface UserStoreState {
   subscriptionTier: SubscriptionTier;
   theme: 'light' | 'dark' | 'system';
   attemptsUsedToday: number;
+  isHydrated: boolean;
 
   // Actions
   setUser: (user: User) => void;
@@ -29,6 +33,7 @@ export interface UserStoreState {
   incrementDailyAttempts: () => void;
   resetDailyAttempts: () => void;
   canAttemptActivity: () => boolean;
+  hydrate: (state: Partial<UserStoreState>) => void;
 }
 
 const DAILY_ATTEMPTS_LIMIT_FREE = 5;
@@ -36,9 +41,10 @@ const DAILY_ATTEMPTS_LIMIT_FREE = 5;
 export const useUserStore = create<UserStoreState>((set, get) => ({
   user: null,
   isAuthenticated: false,
-  subscriptionTier: 'free',
-  theme: 'system',
+  subscriptionTier: 'free' as SubscriptionTier,
+  theme: 'system' as const,
   attemptsUsedToday: 0,
+  isHydrated: false,
 
   setUser: (user: User) => {
     set({
@@ -89,4 +95,19 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
 
     return attemptsUsedToday < DAILY_ATTEMPTS_LIMIT_FREE;
   },
+
+  hydrate: (state: Partial<UserStoreState>) => {
+    set({ ...state, isHydrated: true, attemptsUsedToday: 0 });
+  },
 }));
+
+// Subscribe to state changes and persist to AsyncStorage (excluding attemptsUsedToday)
+useUserStore.subscribe((state: UserStoreState) => {
+  // Only persist user data, not attempt count (resets daily)
+  persistUserState({
+    user: state.user,
+    isAuthenticated: state.isAuthenticated,
+    subscriptionTier: state.subscriptionTier,
+    theme: state.theme,
+  });
+});
