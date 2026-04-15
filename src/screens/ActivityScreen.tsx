@@ -200,17 +200,36 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
 
   const handleContinue = useCallback(() => {
     if (isCorrect) {
-      navigateTo('activity', {
-        componentId: currentComponentId || '',
-        levelId: currentLevelId || '',
-      });
+      // Find the next activity in the level
+      const component = components.find((c) => c.id === currentComponentId);
+      if (!component) return;
+
+      const level = component.levels.find((l: any) => l.id === currentLevelId);
+      if (!level) return;
+
+      const currentActivityIndex = level.activities.findIndex(
+        (a: any) => a.id === currentActivityId
+      );
+
+      if (currentActivityIndex >= 0 && currentActivityIndex < level.activities.length - 1) {
+        // There's a next activity
+        const nextActivity = level.activities[currentActivityIndex + 1];
+        navigateTo('activity', {
+          componentId: currentComponentId || '',
+          levelId: currentLevelId || '',
+          activityId: nextActivity.id,
+        });
+      } else {
+        // No more activities in this level - go to results or next level
+        navigateTo('results');
+      }
     } else {
       // Reset for retry
       setShowResult(false);
       setSelectedOption(null);
       setError(null);
     }
-  }, [isCorrect, navigateTo, currentComponentId, currentLevelId]);
+  }, [isCorrect, navigateTo, currentComponentId, currentLevelId, currentActivityId]);
 
   const handleSelectOption = useCallback((option: string) => {
     setSelectedOption(option);
