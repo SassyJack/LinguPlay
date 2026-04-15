@@ -46,12 +46,12 @@ export const useUIStore = create<UIStoreState>(set => ({
   notificationType: 'info',
 
   navigateTo: (screen: ScreenType, params?: Record<string, string>) => {
-    set({
+    set((state) => ({
       currentScreen: screen,
-      selectedComponentId: params?.componentId || null,
-      selectedLevelId: params?.levelId || null,
-      selectedActivityId: params?.activityId || null,
-    });
+      selectedComponentId: params?.componentId !== undefined ? params.componentId : state.selectedComponentId,
+      selectedLevelId: params?.levelId !== undefined ? params.levelId : state.selectedLevelId,
+      selectedActivityId: params?.activityId !== undefined ? params.activityId : state.selectedActivityId,
+    }));
   },
 
   goBack: () => {
