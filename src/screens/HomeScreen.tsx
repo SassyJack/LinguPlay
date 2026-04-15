@@ -44,12 +44,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   }, []);
 
   const handleStartActivity = useCallback(() => {
-    if (!user) {
-      showToast('Por favor inicia sesión', 'warning');
-      return;
-    }
     navigateTo('component');
-  }, [user, navigateTo, showToast]);
+  }, [navigateTo]);
 
   const handleViewProgress = useCallback(() => {
     navigateTo('results');

@@ -62,6 +62,13 @@ export const AppContainer: React.FC = () => {
         if (userState) {
           userHydrate(userState);
         } else {
+          // Create demo user for development/testing
+          const setUser = useUserStore.getState().setUser;
+          setUser({
+            id: 'demo-user-' + Date.now(),
+            displayName: 'Estudiante Demo',
+            email: 'demo@linguaplay.local',
+          });
           userHydrate({});
         }
       } catch (error) {
@@ -69,6 +76,13 @@ export const AppContainer: React.FC = () => {
         // Set default hydrated state even on error
         gameHydrate({});
         userHydrate({});
+        // Create demo user even on error
+        const setUser = useUserStore.getState().setUser;
+        setUser({
+          id: 'demo-user-' + Date.now(),
+          displayName: 'Estudiante Demo',
+          email: 'demo@linguaplay.local',
+        });
       } finally {
         setIsInitializing(false);
       }
