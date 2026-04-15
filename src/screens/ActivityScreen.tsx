@@ -10,6 +10,9 @@ import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
+import { HapticService, audioService } from '@/services';
+import { GameSyncService } from '@/api';
+import { useGameStore, useUserStore } from '@/store';
 
 /**
  * ActivityScreen - Interactive game activity with question/options/feedback flow
@@ -114,7 +117,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
 
     try {
       // Simulate API call with error handling
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         try {
           const correct = selectedOption === activity.correctAnswer;
           setIsCorrect(correct);
@@ -127,8 +130,45 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           if (correct) {
             const reward = activity.reward || 10;
             completeActivity(activity.id, reward);
+            
+            // Haptic feedback for success
+            await HapticService.success();
+            
+            // Play success sound
+            await audioService.playSoundEffect('success');
+            
             showToast(`¡Correcto! +${reward} puntos`, 'success');
+            
+            // Sync progress to backend
+            try {
+              const gameState = useGameStore.getState();
+              const userState = useUserStore.getState();
+              
+              if (userState.user) {
+                await GameSyncService.syncProgress({
+                  userId: userState.user.id,
+                  completedActivities: gameState.completedActivities,
+                  score: gameState.score,
+                  stars: gameState.stars,
+                  streak: gameState.streak,
+                  totalAttempts: gameState.totalAttempts,
+                  totalCorrect: gameState.totalCorrect,
+                  componentMistakes: gameState.componentMistakes,
+                  unlockedAchievements: gameState.unlockedAchievements,
+                  lastSyncAt: new Date().toISOString(),
+                });
+              }
+            } catch (syncError) {
+              console.warn('Sync error (offline):', syncError);
+              // Continue gracefully if offline
+            }
           } else {
+            // Haptic feedback for error
+            await HapticService.error();
+            
+            // Play error sound
+            await audioService.playSoundEffect('error');
+            
             showToast('Intenta de nuevo', 'error');
           }
         } catch (updateError) {
@@ -172,6 +212,8 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const handleSelectOption = useCallback((option: string) => {
     setSelectedOption(option);
     setError(null);
+    // Haptic feedback on option selection
+    HapticService.tap();
   }, []);
 
   return (

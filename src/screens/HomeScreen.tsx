@@ -1,13 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
   RefreshControl,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * HomeScreen - Main welcome hub showing personalized greeting,
@@ -24,11 +26,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   const { navigateTo, showToast } = useUI();
   const [refreshing, setRefreshing] = React.useState(false);
 
+  // Animations
+  const { animatedStyle: fadeInStyle, startAnimation: startFadeIn } = useFadeInAnimation();
+  const { animatedStyle: slideInStyle, startAnimation: startSlideIn } = useSlideInAnimation('left');
+
   // Memoized callbacks for performance
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     const timer = setTimeout(() => setRefreshing(false), 1000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Trigger animations on mount
+  useEffect(() => {
+    startFadeIn();
+    setTimeout(() => startSlideIn(), 150);
   }, []);
 
   const handleStartActivity = useCallback(() => {
@@ -66,8 +78,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
         accessibilityLabel="Contenido principal"
       >
         {/* Header Welcome */}
-        <View
-          style={styles.header}
+        <Animated.View
+          style={[styles.header, fadeInStyle]}
           testID="home-header"
           accessible={true}
           accessibilityLabel={`Bienvenido ${displayName}${isPremium ? ' Premium' : ''}`}
@@ -87,11 +99,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
             {displayName}
             {isPremium && ' 👑'}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Stats Cards */}
-        <View
-          style={styles.statsContainer}
+        <Animated.View
+          style={[styles.statsContainer, slideInStyle]}
           testID="stats-container"
           accessible={true}
           accessibilityLabel="Estadísticas de usuario"
@@ -153,7 +165,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
               {completionPercentageText}%
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Main CTA */}
         <View

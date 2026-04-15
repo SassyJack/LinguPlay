@@ -1,13 +1,15 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * ResultsScreen - Analytics dashboard showing overall and per-component progress
