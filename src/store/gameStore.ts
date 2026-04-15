@@ -1,8 +1,10 @@
 import { create } from 'zustand';
+import { persistGameState } from './persistence';
 
 /**
  * Game store state and actions
  * Manages all game progress, activities, achievements, and game logic
+ * State is automatically persisted to AsyncStorage on changes
  */
 
 export interface GameStoreState {
@@ -15,6 +17,7 @@ export interface GameStoreState {
   totalCorrect: number;
   componentMistakes: Record<string, number>;
   unlockedAchievements: string[];
+  isHydrated: boolean;
 
   // Actions
   completeActivity: (activityId: string, points: number) => void;
@@ -23,6 +26,7 @@ export interface GameStoreState {
   unlockAchievement: (achievementId: string) => void;
   getCompletionPercentage: () => number;
   getActivitiesCompleted: () => number;
+  hydrate: (state: Partial<GameStoreState>) => void;
 }
 
 const initialState = {
@@ -34,6 +38,7 @@ const initialState = {
   totalCorrect: 0,
   componentMistakes: {},
   unlockedAchievements: [],
+  isHydrated: false,
 };
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -76,7 +81,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   resetProgress: () => {
-    set(initialState);
+    set({ ...initialState, isHydrated: true });
   },
 
   getCompletionPercentage: () => {
@@ -87,4 +92,23 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   getActivitiesCompleted: () => {
     return Object.keys(get().completedActivities).length;
   },
+
+  hydrate: (state: Partial<GameStoreState>) => {
+    set({ ...state, isHydrated: true });
+  },
 }));
+
+// Subscribe to state changes and persist to AsyncStorage
+useGameStore.subscribe((state: GameStoreState) => {
+  // Only persist data-related state, not UI flags
+  persistGameState({
+    completedActivities: state.completedActivities,
+    score: state.score,
+    stars: state.stars,
+    streak: state.streak,
+    totalAttempts: state.totalAttempts,
+    totalCorrect: state.totalCorrect,
+    componentMistakes: state.componentMistakes,
+    unlockedAchievements: state.unlockedAchievements,
+  });
+});
