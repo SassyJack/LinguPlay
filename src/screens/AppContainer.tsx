@@ -176,11 +176,7 @@ export const AppContainer: React.FC = () => {
       case 'home':
         return <HomeScreen testID="home-screen" />;
       case 'component':
-        return selectedComponentId ? (
-          <ComponentSelectorScreen testID="component-selector-screen" />
-        ) : (
-          <HomeScreen testID="home-screen" />
-        );
+        return <ComponentSelectorScreen testID="component-selector-screen" />;
       case 'level':
         return selectedComponentId ? (
           <LevelSelectorScreen
