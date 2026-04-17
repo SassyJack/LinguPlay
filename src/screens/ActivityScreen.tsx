@@ -49,9 +49,9 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentComponentId = componentId || selectedComponentId;
-  const currentLevelId = levelId || selectedLevelId;
-  const currentActivityId = activityId || selectedActivityId;
+  const currentComponentId = selectedComponentId;
+  const currentLevelId = selectedLevelId;
+  const currentActivityId = selectedActivityId;
 
   const activity = useMemo(() => {
     const component = components.find((c) => c.id === currentComponentId);
