@@ -51,32 +51,32 @@ const styles = StyleSheet.create({
   h1: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000000',
+    color: '#000000', // Negro puro para máximo contraste
     marginVertical: 8,
   },
   h2: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '700', // Aumentado de 600 para mejor legibilidad
     color: '#000000',
     marginVertical: 6,
   },
   h3: {
-    fontSize: 18,
+    fontSize: 20, // Aumentado de 18
     fontWeight: '600',
     color: '#000000',
     marginVertical: 4,
   },
   body: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#333333',
-    lineHeight: 24,
+    fontSize: 18, // Aumentado de 16
+    fontWeight: '500', // Aumentado de 400
+    color: '#111111', // Casi negro para mejor contraste que #333333
+    lineHeight: 26,
   },
   caption: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#666666',
-    lineHeight: 16,
+    fontSize: 14, // Aumentado de 12
+    fontWeight: '500',
+    color: '#444444', // Oscurecido de #666666
+    lineHeight: 18,
   },
 });
 

@@ -22,6 +22,7 @@ export class FirebaseAuthService {
    */
   static async signup(request: SignupRequest): Promise<LoginResponse> {
     try {
+      console.log('Iniciando registro en Firebase Auth para:', request.email);
       // Create auth user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -30,6 +31,7 @@ export class FirebaseAuthService {
       );
 
       const user = userCredential.user;
+      console.log('Usuario creado en Auth con UID:', user.uid);
 
       // Update profile
       await updateProfile(user, {
@@ -42,11 +44,14 @@ export class FirebaseAuthService {
         displayName: request.displayName,
         email: request.email,
         subscriptionTier: 'free',
+        role: request.role || 'user',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
+      console.log('Intentando guardar perfil en Realtime Database...', userProfile);
       await set(ref(database, `users/${user.uid}`), userProfile);
+      console.log('Perfil guardado exitosamente en Database');
 
       // Get token (for compatibility)
       const token = await user.getIdToken();
@@ -57,11 +62,12 @@ export class FirebaseAuthService {
           id: user.uid,
           displayName: request.displayName,
           email: request.email,
+          role: userProfile.role,
         },
         subscriptionTier: 'free',
       };
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('Error detallado en Signup:', error);
       throw new Error(error.message || 'Signup failed');
     }
   }
@@ -81,14 +87,24 @@ export class FirebaseAuthService {
 
       // Get user profile from database
       const snapshot = await get(ref(database, `users/${user.uid}`));
-      const userProfile: UserProfile = snapshot.val() || {
-        id: user.uid,
-        displayName: user.displayName || 'Usuario',
-        email: user.email || '',
-        subscriptionTier: 'free',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      let userProfile: UserProfile;
+      
+      if (snapshot.exists()) {
+        userProfile = snapshot.val();
+      } else {
+        // Fallback profile if database entry missing
+        userProfile = {
+          id: user.uid,
+          displayName: user.displayName || 'Usuario',
+          email: user.email || '',
+          subscriptionTier: 'free',
+          role: 'user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        // Save it for next time
+        await set(ref(database, `users/${user.uid}`), userProfile);
+      }
 
       // Get token
       const token = await user.getIdToken();
@@ -99,6 +115,7 @@ export class FirebaseAuthService {
           id: user.uid,
           displayName: userProfile.displayName,
           email: userProfile.email,
+          role: userProfile.role,
         },
         subscriptionTier: userProfile.subscriptionTier,
       };

@@ -9,7 +9,7 @@ import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
-import { useFadeInAnimation, useSlideInAnimation } from '@/services';
+import { useFadeInAnimation, useSlideInAnimation, audioService } from '@/services';
 
 /**
  * ResultsScreen - Analytics dashboard showing overall and per-component progress
@@ -26,6 +26,17 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   const { navigateTo, goBack } = useUI();
   const { score, stars, completionPercentage, activitiesCompleted, completedActivities } =
     useGame();
+  const { animatedStyle: fadeInStyle, startAnimation: startFadeIn } = useFadeInAnimation();
+  const { animatedStyle: slideInStyle, startAnimation: startSlideIn } = useSlideInAnimation('up');
+
+  // Trigger animations on mount
+  useEffect(() => {
+    startFadeIn();
+    startSlideIn();
+    
+    // Play results background music
+    audioService.playBackgroundMusic('result');
+  }, [startFadeIn, startSlideIn]);
 
   // Memoized callback
   const handleGoBack = useCallback(() => {
@@ -113,75 +124,78 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         contentContainerStyle={styles.container}
         testID="results-scroll-view"
       >
-        {/* Overall Stats */}
-        <View
-          style={[styles.statsGrid, { backgroundColor: theme.colors.surface }]}
-          testID="overall-stats"
-          accessible={true}
-          accessibilityLabel="Estadísticas generales"
-        >
-          {/* Puntos */}
+        <Animated.View style={slideInStyle}>
+          {/* Overall Stats */}
           <View
-            style={styles.statItem}
-            testID="score-stat"
+            style={[styles.statsGrid, { backgroundColor: theme.colors.surface }]}
+            testID="overall-stats"
             accessible={true}
-            accessibilityLabel={`Puntos: ${score}`}
+            accessibilityLabel="Estadísticas generales"
           >
-            <Text variant="h3" color={theme.colors.primary}>
-              Puntos
-            </Text>
-            <Text
-              variant="h1"
-              color={theme.colors.primary}
-              style={{ marginTop: 8 }}
-              testID="score-value"
+            {/* Puntos */}
+            <View
+              style={styles.statItem}
+              testID="score-stat"
+              accessible={true}
+              accessibilityLabel={`Puntos: ${score}`}
             >
-              {score}
-            </Text>
-          </View>
+              <Text variant="h3" color={theme.colors.primary}>
+                Puntos
+              </Text>
+              <Text
+                variant="h1"
+                color={theme.colors.primary}
+                style={{ marginTop: 8 }}
+                testID="score-value"
+              >
+                {score}
+              </Text>
+            </View>
 
-          {/* Estrellas */}
-          <View
-            style={styles.statItem}
-            testID="stars-stat"
-            accessible={true}
-            accessibilityLabel={`Estrellas: ${stars}`}
-          >
-            <Text variant="h3" color={theme.colors.accent}>
-              Estrellas
-            </Text>
-            <Text
-              variant="h1"
-              color={theme.colors.accent}
-              style={{ marginTop: 8 }}
-              testID="stars-value"
+            {/* Estrellas */}
+            <View
+              style={styles.statItem}
+              testID="stars-stat"
+              accessible={true}
+              accessibilityLabel={`Estrellas: ${stars}`}
             >
-              {stars}⭐
-            </Text>
-          </View>
+              <Text variant="h3" color={theme.colors.accent}>
+                Estrellas
+              </Text>
+              <Text
+                variant="h1"
+                color={theme.colors.accent}
+                style={{ marginTop: 8 }}
+                testID="stars-value"
+              >
+                {stars}⭐
+              </Text>
+            </View>
 
-          {/* Actividades */}
-          <View
-            style={styles.statItem}
-            testID="activities-stat"
-            accessible={true}
-            accessibilityLabel={`Actividades completadas: ${activitiesCompleted}`}
-          >
-            <Text variant="h3" color={theme.colors.info}>
-              Actividades
-            </Text>
-            <Text
-              variant="h1"
-              color={theme.colors.info}
-              style={{ marginTop: 8 }}
-              testID="activities-value"
+            {/* Actividades */}
+            <View
+              style={styles.statItem}
+              testID="activities-stat"
+              accessible={true}
+              accessibilityLabel={`Actividades completadas: ${activitiesCompleted}`}
             >
-              {activitiesCompleted}
-            </Text>
+              <Text variant="h3" color={theme.colors.info}>
+                Actividades
+              </Text>
+              <Text
+                variant="h1"
+                color={theme.colors.info}
+                style={{ marginTop: 8 }}
+                testID="activities-value"
+              >
+                {activitiesCompleted}
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
-        {/* Overall Progress */}
+        <Animated.View style={fadeInStyle}>
+          {/* Overall Progress */}
         <View
           style={[
             styles.progressCard,
@@ -344,6 +358,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             testID="continue-button"
           />
         </View>
+        </Animated.View>
       </ScrollView>
     </Container>
   );

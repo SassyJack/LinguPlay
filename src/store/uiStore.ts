@@ -10,7 +10,10 @@ export type ScreenType =
   | 'component'
   | 'level'
   | 'activity'
-  | 'results';
+  | 'results'
+  | 'login'
+  | 'signup'
+  | 'admin_dashboard';
 
 export interface UIStoreState {
   // State

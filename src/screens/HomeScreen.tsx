@@ -9,7 +9,7 @@ import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
-import { useFadeInAnimation, useSlideInAnimation } from '@/services';
+import { useFadeInAnimation, useSlideInAnimation, audioService } from '@/services';
 
 /**
  * HomeScreen - Main welcome hub showing personalized greeting,
@@ -22,9 +22,14 @@ interface HomeScreenProps {
 export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }) => {
   const { theme } = useTheme();
   const { score, stars, completionPercentage } = useGame();
-  const { user, isPremium, attemptsRemaining } = useUser();
+  const { user, isPremium, attemptsRemaining, logout } = useUser();
   const { navigateTo, showToast } = useUI();
   const [refreshing, setRefreshing] = React.useState(false);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    navigateTo('login');
+  }, [logout, navigateTo]);
 
   // Animations
   const { animatedStyle: fadeInStyle, startAnimation: startFadeIn } = useFadeInAnimation();
@@ -41,6 +46,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   useEffect(() => {
     startFadeIn();
     setTimeout(() => startSlideIn(), 150);
+    
+    // Play menu background music
+    audioService.playBackgroundMusic('menu');
   }, []);
 
   const handleStartActivity = useCallback(() => {
@@ -80,21 +88,36 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           accessible={true}
           accessibilityLabel={`Bienvenido ${displayName}${isPremium ? ' Premium' : ''}`}
         >
-          <Text
-            variant="h1"
-            color={theme.colors.primary}
-            testID="welcome-text"
-          >
-            ¡Bienvenido a LinguaPlay!
-          </Text>
-          <Text
-            variant="body"
-            color={theme.colors.onBackground}
-            testID="user-name"
-          >
-            {displayName}
-            {isPremium && ' 👑'}
-          </Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text
+                variant="h1"
+                color={theme.colors.primary}
+                testID="welcome-text"
+              >
+                ¡Bienvenido a LinguaPlay!
+              </Text>
+              <Text
+                variant="body"
+                color={theme.colors.onBackground}
+                testID="user-name"
+              >
+                {displayName}
+                {isPremium && ' 👑'}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <Text variant="caption" color={theme.colors.error}>Cerrar Sesión</Text>
+            </TouchableOpacity>
+          </View>
+          {user?.role === 'admin' && (
+            <Button 
+              title="Ir a Panel Admin" 
+              variant="outline" 
+              onPress={() => navigateTo('admin_dashboard')}
+              style={{ marginTop: 16 }}
+            />
+          )}
         </Animated.View>
 
         {/* Stats Cards */}
@@ -230,6 +253,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  logoutButton: {
+    padding: 8,
   },
   statsContainer: {
     flexDirection: 'row',

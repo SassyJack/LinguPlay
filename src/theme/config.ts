@@ -69,34 +69,34 @@ export interface Theme {
 }
 
 const lightColors: ThemeColors = {
-  primary: '#007AFF',
-  primaryLight: '#0A84FF',
-  primaryDark: '#0051D5',
+  primary: '#0051D5', // Azul más profundo para mejor contraste
+  primaryLight: '#007AFF',
+  primaryDark: '#003A9B',
   secondary: '#5AC8FA',
-  accent: '#FF9500',
+  accent: '#E67E22', // Naranja un poco más oscuro
 
   background: '#FFFFFF',
-  surface: '#F9FAFB',
-  surfaceVariant: '#F3F4F6',
+  surface: '#F8F9FA',
+  surfaceVariant: '#E9ECEF',
   onBackground: '#000000',
-  onSurface: '#111827',
+  onSurface: '#111111',
 
-  success: '#34C759',
-  error: '#FF3B30',
-  warning: '#FF9500',
-  info: '#007AFF',
+  success: '#27AE60', // Verde más oscuro
+  error: '#C0392B', // Rojo más profundo
+  warning: '#F39C12',
+  info: '#2980B9',
 
   black: '#000000',
   white: '#FFFFFF',
-  gray100: '#F9FAFB',
-  gray200: '#F3F4F6',
-  gray300: '#E5E7EB',
-  gray400: '#D1D5DB',
-  gray500: '#9CA3AF',
-  gray600: '#6B7280',
-  gray700: '#4B5563',
-  gray800: '#1F2937',
-  gray900: '#111827',
+  gray100: '#F8F9FA',
+  gray200: '#E9ECEF',
+  gray300: '#DEE2E6',
+  gray400: '#CED4DA',
+  gray500: '#ADB5BD',
+  gray600: '#6C757D',
+  gray700: '#495057',
+  gray800: '#343A40',
+  gray900: '#212529',
 };
 
 const darkColors: ThemeColors = {

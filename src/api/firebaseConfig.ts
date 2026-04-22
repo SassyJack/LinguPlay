@@ -18,13 +18,13 @@ import { getFirestore } from 'firebase/firestore';
 // ========== STEP 1: Add your Firebase config here ==========
 // Get this from Firebase Console > Project Settings > Your apps > Web
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'YOUR_API_KEY',
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'your-project.firebaseapp.com',
-  databaseURL: process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL || 'https://your-project.firebaseio.com',
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'your-project',
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'your-project.appspot.com',
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:abcdef123456',
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyCPGF5AZhy8Cwr-Zqu_OjcxRE63YO5LAGo',
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'linguplay-2d2ae.firebaseapp.com',
+  databaseURL: process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL || 'https://linguplay-2d2ae-default-rtdb.firebaseio.com',
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'linguplay-2d2ae',
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'linguplay-2d2ae.appspot.com',
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '59070765265',
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:59070765265:web:b70d73c991720ffc450df0',
 };
 
 // Initialize Firebase

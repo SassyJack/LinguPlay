@@ -10,6 +10,9 @@ import {
   LevelSelectorScreen,
   ActivityScreen,
   ResultsScreen,
+  LoginScreen,
+  SignupScreen,
+  AdminDashboardScreen,
 } from './index';
 import { useTheme } from '../theme';
 import { GameSyncService, useConnectivity } from '../api';
@@ -37,7 +40,8 @@ export const AppContainer: React.FC = () => {
   const gameHydrate = useGameStore(state => state.hydrate);
   const gameIsHydrated = useGameStore(state => state.isHydrated);
   const gameUnlockAchievement = useGameStore(state => state.unlockAchievement);
-  const userHydrate = useUserStore(state => state.hydrate);
+  const userHydrate = useUserStore.getState().hydrate;
+  const userIsAuthenticated = useUserStore(state => state.isAuthenticated);
   const userIsHydrated = useUserStore(state => state.isHydrated);
 
   /**
@@ -59,30 +63,17 @@ export const AppContainer: React.FC = () => {
 
         // Load persisted user state
         const userState = await hydrateUserStore();
-        if (userState) {
+        if (userState && userState.user) {
           userHydrate(userState);
         } else {
-          // Create demo user for development/testing
-          const setUser = useUserStore.getState().setUser;
-          setUser({
-            id: 'demo-user-' + Date.now(),
-            displayName: 'Estudiante Demo',
-            email: 'demo@linguaplay.local',
-          });
-          userHydrate({});
+          // No user, don't create demo automatically to force login
+          userHydrate({ user: null, isAuthenticated: false });
         }
       } catch (error) {
         console.error('Error initializing app:', error);
         // Set default hydrated state even on error
         gameHydrate({});
-        userHydrate({});
-        // Create demo user even on error
-        const setUser = useUserStore.getState().setUser;
-        setUser({
-          id: 'demo-user-' + Date.now(),
-          displayName: 'Estudiante Demo',
-          email: 'demo@linguaplay.local',
-        });
+        userHydrate({ user: null, isAuthenticated: false });
       } finally {
         setIsInitializing(false);
       }
@@ -186,9 +177,21 @@ export const AppContainer: React.FC = () => {
 
   // Render screens based on current navigation state
   const renderScreen = () => {
+    // If not authenticated, only allow login or signup
+    if (!userIsAuthenticated) {
+      switch (currentScreen) {
+        case 'signup':
+          return <SignupScreen />;
+        default:
+          return <LoginScreen />;
+      }
+    }
+
     switch (currentScreen) {
       case 'home':
         return <HomeScreen testID="home-screen" />;
+      case 'admin_dashboard':
+        return <AdminDashboardScreen />;
       case 'component':
         return <ComponentSelectorScreen testID="component-selector-screen" />;
       case 'level':
