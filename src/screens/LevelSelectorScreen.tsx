@@ -51,6 +51,10 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
         const level = component?.levels.find((l: any) => l.id === levelId);
         const firstActivityId = level?.activities[0]?.id;
 
+        if (!firstActivityId) {
+          return;
+        }
+
         navigateTo('activity', {
           componentId: currentComponentId,
           levelId,

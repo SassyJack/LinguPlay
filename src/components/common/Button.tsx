@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text as RNText } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Text as RNText,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 interface ButtonProps {
   onPress: () => void;
@@ -7,6 +13,7 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
   disabled?: boolean;
   testID?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -15,12 +22,13 @@ const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   disabled = false,
   testID,
+  style,
 }) => {
   const styles = getStyles(variant, disabled);
 
   return (
     <TouchableOpacity
-      style={styles.button}
+      style={[styles.button, style]}
       onPress={onPress}
       disabled={disabled}
       testID={testID}

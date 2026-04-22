@@ -50,7 +50,7 @@ export default app;
  * 4. In your .env.local file (create if doesn't exist):
  *    EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
  *    EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
- *    EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+ *    EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://your-project-default-rtdb.firebaseio.com
  *    EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project
  *    EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
  *    EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789

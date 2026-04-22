@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, FlatList, ActivityIndicator } from 'react-native';
 import { Button, Text, Container, Card } from '@/components';
 import { useUI, useUser } from '@/hooks';
 import { useTheme } from '@/theme';
-import { ref, get, database } from '@/api/firebaseConfig';
+import { get, ref } from 'firebase/database';
+import { database } from '@/api/firebaseConfig';
+import type { UserProfile } from '@/api';
 
 export const AdminDashboardScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { navigateTo, goBack } = useUI();
+  const { navigateTo } = useUI();
   const { logout } = useUser();
   
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, premium: 0, free: 0 });
 
@@ -22,11 +24,11 @@ export const AdminDashboardScreen: React.FC = () => {
       
       if (snapshot.exists()) {
         const usersData = snapshot.val();
-        const usersList = Object.values(usersData);
+        const usersList = Object.values(usersData) as UserProfile[];
         setUsers(usersList);
         
-        const premium = usersList.filter((u: any) => u.subscriptionTier === 'premium').length;
-        const free = usersList.filter((u: any) => u.subscriptionTier === 'free').length;
+        const premium = usersList.filter(u => u.subscriptionTier === 'premium').length;
+        const free = usersList.filter(u => u.subscriptionTier === 'free').length;
         
         setStats({
           total: usersList.length,
@@ -50,7 +52,7 @@ export const AdminDashboardScreen: React.FC = () => {
     navigateTo('login');
   };
 
-  const renderUserItem = ({ item }: { item: any }) => (
+  const renderUserItem = ({ item }: { item: UserProfile }) => (
     <Card style={styles.userCard}>
       <View style={styles.userInfo}>
         <Text variant="h3">{item.displayName}</Text>

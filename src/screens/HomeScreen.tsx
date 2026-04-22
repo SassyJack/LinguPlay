@@ -4,6 +4,7 @@ import {
   View,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
@@ -23,7 +24,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   const { theme } = useTheme();
   const { score, stars, completionPercentage } = useGame();
   const { user, isPremium, attemptsRemaining, logout } = useUser();
-  const { navigateTo, showToast } = useUI();
+  const { navigateTo } = useUI();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const handleLogout = useCallback(() => {

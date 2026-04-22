@@ -12,7 +12,7 @@
 5. Click "Enable"
 6. Espera 2-3 minutos
 ```
-**Verifica:** Deberías ver URL como `https://linguplay-2d2ae.firebaseio.com/`
+**Verifica:** Deberías ver URL como `https://linguplay-2d2ae-default-rtdb.firebaseio.com/`
 
 **Status:** ⚠️ PENDING
 

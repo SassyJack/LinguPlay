@@ -8,15 +8,23 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile,
+  updateProfile as updateFirebaseProfile,
   onAuthStateChanged,
   User,
 } from 'firebase/auth';
 import { ref, set, get, update } from 'firebase/database';
 import { auth, database } from './firebaseConfig';
+import { apiClient } from './client';
 import { LoginRequest, LoginResponse, SignupRequest, UserProfile } from './types';
 
 export class FirebaseAuthService {
+  private static async saveUserProfile(
+    userId: string,
+    profile: UserProfile
+  ): Promise<void> {
+    await set(ref(database, `users/${userId}`), profile);
+  }
+
   /**
    * Sign up a new user
    */
@@ -34,7 +42,7 @@ export class FirebaseAuthService {
       console.log('Usuario creado en Auth con UID:', user.uid);
 
       // Update profile
-      await updateProfile(user, {
+      await updateFirebaseProfile(user, {
         displayName: request.displayName,
       });
 
@@ -49,12 +57,17 @@ export class FirebaseAuthService {
         updatedAt: new Date().toISOString(),
       };
 
-      console.log('Intentando guardar perfil en Realtime Database...', userProfile);
-      await set(ref(database, `users/${user.uid}`), userProfile);
-      console.log('Perfil guardado exitosamente en Database');
+      try {
+        console.log('Intentando guardar perfil en Realtime Database...', userProfile);
+        await this.saveUserProfile(user.uid, userProfile);
+        console.log('Perfil guardado exitosamente en Database');
+      } catch (profileError) {
+        console.warn('No se pudo guardar el perfil en Realtime Database durante el registro:', profileError);
+      }
 
       // Get token (for compatibility)
       const token = await user.getIdToken();
+      apiClient.setAuthToken(token);
 
       return {
         token,
@@ -86,13 +99,26 @@ export class FirebaseAuthService {
       const user = userCredential.user;
 
       // Get user profile from database
-      const snapshot = await get(ref(database, `users/${user.uid}`));
       let userProfile: UserProfile;
-      
-      if (snapshot.exists()) {
-        userProfile = snapshot.val();
-      } else {
-        // Fallback profile if database entry missing
+
+      try {
+        const snapshot = await get(ref(database, `users/${user.uid}`));
+        if (snapshot.exists()) {
+          userProfile = snapshot.val();
+        } else {
+          userProfile = {
+            id: user.uid,
+            displayName: user.displayName || 'Usuario',
+            email: user.email || '',
+            subscriptionTier: 'free',
+            role: 'user',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          await this.saveUserProfile(user.uid, userProfile);
+        }
+      } catch (profileError) {
+        console.warn('No se pudo leer el perfil desde Realtime Database durante el login:', profileError);
         userProfile = {
           id: user.uid,
           displayName: user.displayName || 'Usuario',
@@ -102,12 +128,11 @@ export class FirebaseAuthService {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        // Save it for next time
-        await set(ref(database, `users/${user.uid}`), userProfile);
       }
 
       // Get token
       const token = await user.getIdToken();
+      apiClient.setAuthToken(token);
 
       return {
         token,
@@ -163,7 +188,7 @@ export class FirebaseAuthService {
 
       // Update display name in auth
       if (updates.displayName) {
-        await updateProfile(user, {
+        await updateFirebaseProfile(user, {
           displayName: updates.displayName,
         });
       }

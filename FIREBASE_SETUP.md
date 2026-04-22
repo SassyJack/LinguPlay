@@ -23,7 +23,7 @@
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "linguaplay-xxx.firebaseapp.com",
-  databaseURL: "https://linguaplay-xxx.firebaseio.com",
+  databaseURL: "https://linguaplay-xxx-default-rtdb.firebaseio.com",
   projectId: "linguaplay-xxx",
   storageBucket: "linguaplay-xxx.appspot.com",
   messagingSenderId: "123456789",
@@ -40,7 +40,7 @@ const firebaseConfig = {
 ```bash
 EXPO_PUBLIC_FIREBASE_API_KEY=YOUR_API_KEY
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=linguaplay-xxx.firebaseapp.com
-EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://linguaplay-xxx.firebaseio.com
+EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://linguaplay-xxx-default-rtdb.firebaseio.com
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=linguaplay-xxx
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=linguaplay-xxx.appspot.com
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
