@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { Theme, lightTheme, darkTheme, ThemeMode } from './config';
+
+const isWeb = Platform.OS === 'web';
 
 interface ThemeContextType {
   theme: Theme;
@@ -18,14 +21,16 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
-  defaultMode = 'system',
+  defaultMode = 'light',
 }) => {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState<ThemeMode>(defaultMode);
 
-  // Determine which theme to use
   const getTheme = () => {
     if (themeMode === 'system') {
+      if (isWeb) {
+        return lightTheme;
+      }
       return systemColorScheme === 'dark' ? darkTheme : lightTheme;
     }
     return themeMode === 'dark' ? darkTheme : lightTheme;
