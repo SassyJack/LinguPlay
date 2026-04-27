@@ -1,20 +1,27 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
+import { HapticService, audioService, speechService } from '@/services';
+import { GameSyncService } from '@/api';
+import { useGameStore, useUserStore } from '@/store';
 
-/**
- * ActivityScreen - Interactive game activity with question/options/feedback flow
- * Handles activity presentation, answer submission, and result display
- */
+const ACTIVITY_IMAGES: Record<string, number> = {
+  fonologico: require('../../assets/activity-images/fonologico.png'),
+  semantico: require('../../assets/activity-images/semantico.png'),
+  sintactico: require('../../assets/activity-images/sintactico.png'),
+  pragmatico: require('../../assets/activity-images/pragmatico.png'),
+};
+
 interface ActivityScreenProps {
   componentId?: string;
   levelId?: string;
@@ -41,6 +48,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const { canAttemptActivity, incrementDailyAttempts } = useUser();
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [sequenceAnswer, setSequenceAnswer] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,29 +57,217 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const currentComponentId = componentId || selectedComponentId;
   const currentLevelId = levelId || selectedLevelId;
   const currentActivityId = activityId || selectedActivityId;
+  const currentActivityImage = currentComponentId
+    ? ACTIVITY_IMAGES[currentComponentId]
+    : null;
 
   const activity = useMemo(() => {
-    const component = components.find((c) => c.id === currentComponentId);
+    const component = components.find(c => c.id === currentComponentId);
     if (!component) return null;
 
     const level = component.levels.find((l: any) => l.id === currentLevelId);
     if (!level) return null;
 
-    return level.activities.find((a: any) => a.id === currentActivityId);
+    const targetActivityId = currentActivityId || (level.activities[0]?.id || null);
+    return level.activities.find((a: any) => a.id === targetActivityId) || null;
   }, [currentComponentId, currentLevelId, currentActivityId]);
 
-  // Memoized callbacks for event handlers - defined before error boundary
+  useEffect(() => {
+    if (!activity) {
+      return;
+    }
+
+    setSelectedOption(null);
+    setSequenceAnswer([]);
+    setShowResult(false);
+    setIsCorrect(false);
+    setIsSubmitting(false);
+    setError(null);
+    audioService.playBackgroundMusic('game');
+
+    if (activity.audioPrompt) {
+      speechService.speak(activity.audioPrompt);
+    }
+
+    return () => {
+      speechService.stop();
+    };
+  }, [activity]);
+
   const handleExit = useCallback(() => {
+    speechService.stop();
     goBack();
   }, [goBack]);
 
-  // Error state fallback
+  const handlePlayPrompt = useCallback(() => {
+    if (!activity) return;
+    const textToRead = activity.audioPrompt || activity.prompt || activity.instruction;
+    speechService.speak(textToRead);
+  }, [activity]);
+
+  const handlePressBankItem = useCallback((item: string) => {
+    if (!activity || activity.type !== 'order' || showResult) return;
+
+    const bankCount = activity.bank?.filter((bankItem: string) => bankItem === item).length || 0;
+    const selectedCount = sequenceAnswer.filter(selectedItem => selectedItem === item).length;
+
+    if (selectedCount < bankCount) {
+      setSequenceAnswer(prev => [...prev, item]);
+      setError(null);
+      HapticService.tap();
+      audioService.playSoundEffect('tap');
+      speechService.speak(item);
+    }
+  }, [activity, sequenceAnswer, showResult]);
+
+  const handleRemoveSequenceItem = useCallback((index: number) => {
+    if (showResult) return;
+
+    const removedItem = sequenceAnswer[index];
+    setSequenceAnswer(prev => prev.filter((_, itemIndex) => itemIndex !== index));
+    HapticService.tap();
+    audioService.playSoundEffect('tap');
+    if (removedItem) {
+      speechService.speak(removedItem);
+    }
+  }, [sequenceAnswer, showResult]);
+
+  const handleSelectOption = useCallback((option: string) => {
+    setSelectedOption(option);
+    setError(null);
+    HapticService.tap();
+    audioService.playSoundEffect('tap');
+    speechService.speak(option);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    if (!activity) {
+      setError('Actividad no encontrada');
+      return;
+    }
+
+    if (!canAttemptActivity()) {
+      showToast('Has llegado al limite de intentos hoy', 'warning');
+      return;
+    }
+
+    if (activity.type === 'choice' && !selectedOption) {
+      setError('Por favor selecciona una opcion');
+      return;
+    }
+
+    if (activity.type === 'order' && sequenceAnswer.length === 0) {
+      setError('Por favor ordena los elementos');
+      return;
+    }
+
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      let correct = false;
+      if (activity.type === 'choice') {
+        correct = selectedOption === activity.correctAnswer;
+      } else if (activity.type === 'order') {
+        correct = JSON.stringify(sequenceAnswer) === JSON.stringify(activity.correctSequence);
+      }
+
+      setIsCorrect(correct);
+      setShowResult(true);
+      recordAttempt(currentComponentId || '', correct);
+      incrementDailyAttempts();
+
+      if (correct) {
+        const reward = activity.reward || 10;
+        completeActivity(activity.id, reward);
+        await HapticService.success();
+        await audioService.playSoundEffect('success');
+        showToast(`Correcto! +${reward} puntos`, 'success');
+
+        try {
+          const gameState = useGameStore.getState();
+          const userState = useUserStore.getState();
+
+          if (userState.user) {
+            await GameSyncService.syncProgress({
+              userId: userState.user.id,
+              completedActivities: gameState.completedActivities,
+              score: gameState.score,
+              stars: gameState.stars,
+              streak: gameState.streak,
+              totalAttempts: gameState.totalAttempts,
+              totalCorrect: gameState.totalCorrect,
+              componentMistakes: gameState.componentMistakes,
+              unlockedAchievements: gameState.unlockedAchievements,
+              lastSyncAt: new Date().toISOString(),
+            });
+          }
+        } catch (syncError) {
+          console.warn('Sync error (offline):', syncError);
+        }
+      } else {
+        await HapticService.error();
+        await audioService.playSoundEffect('error');
+        showToast('Intenta de nuevo', 'error');
+      }
+    } catch (submitError) {
+      console.error('Submit activity error:', submitError);
+      setError('Error al procesar tu respuesta');
+      showToast('Algo salio mal', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    activity,
+    canAttemptActivity,
+    completeActivity,
+    currentComponentId,
+    incrementDailyAttempts,
+    recordAttempt,
+    selectedOption,
+    sequenceAnswer,
+    showToast,
+  ]);
+
+  const handleContinue = useCallback(() => {
+    if (!activity) {
+      return;
+    }
+
+    if (isCorrect) {
+      const component = components.find(c => c.id === currentComponentId);
+      if (!component) return;
+
+      const level = component.levels.find((l: any) => l.id === currentLevelId);
+      if (!level) return;
+
+      const currentActivityIndex = level.activities.findIndex((a: any) => a.id === activity.id);
+      if (currentActivityIndex >= 0 && currentActivityIndex < level.activities.length - 1) {
+        const nextActivity = level.activities[currentActivityIndex + 1];
+        navigateTo('activity', {
+          componentId: currentComponentId || '',
+          levelId: currentLevelId || '',
+          activityId: nextActivity.id,
+        });
+      } else {
+        navigateTo('results');
+      }
+    } else {
+      setShowResult(false);
+      setSelectedOption(null);
+      setSequenceAnswer([]);
+      setError(null);
+    }
+  }, [activity, currentComponentId, currentLevelId, isCorrect, navigateTo]);
+
   if (!activity) {
     return (
       <Container testID={testID}>
         <View style={styles.centerContent}>
           <Text variant="h2" testID="activity-error-title">
-            ⚠️ Actividad no encontrada
+            Actividad no encontrada
           </Text>
           <Text
             variant="body"
@@ -92,87 +288,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       </Container>
     );
   }
-  const handleSubmit = useCallback(async () => {
-    // Validation checks
-    if (!activity) {
-      setError('Actividad no encontrada');
-      return;
-    }
-
-    if (!canAttemptActivity()) {
-      showToast('Has llegado al límite de intentos hoy', 'warning');
-      return;
-    }
-
-    if (!selectedOption) {
-      setError('Por favor selecciona una opción');
-      return;
-    }
-
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      // Simulate API call with error handling
-      const timer = setTimeout(() => {
-        try {
-          const correct = selectedOption === activity.correctAnswer;
-          setIsCorrect(correct);
-          setShowResult(true);
-
-          // Record attempt and update state
-          recordAttempt(currentComponentId || '', correct);
-          incrementDailyAttempts();
-
-          if (correct) {
-            const reward = activity.reward || 10;
-            completeActivity(activity.id, reward);
-            showToast(`¡Correcto! +${reward} puntos`, 'success');
-          } else {
-            showToast('Intenta de nuevo', 'error');
-          }
-        } catch (updateError) {
-          setError('Error al guardar el intento');
-          showToast('Error al procesar', 'error');
-        }
-      }, 800);
-
-      return () => clearTimeout(timer);
-    } catch (err) {
-      setError('Error al procesar tu respuesta');
-      showToast('Algo salió mal', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    activity,
-    canAttemptActivity,
-    selectedOption,
-    recordAttempt,
-    incrementDailyAttempts,
-    completeActivity,
-    currentComponentId,
-    showToast,
-  ]);
-
-  const handleContinue = useCallback(() => {
-    if (isCorrect) {
-      navigateTo('activity', {
-        componentId: currentComponentId || '',
-        levelId: currentLevelId || '',
-      });
-    } else {
-      // Reset for retry
-      setShowResult(false);
-      setSelectedOption(null);
-      setError(null);
-    }
-  }, [isCorrect, navigateTo, currentComponentId, currentLevelId]);
-
-  const handleSelectOption = useCallback((option: string) => {
-    setSelectedOption(option);
-    setError(null);
-  }, []);
 
   return (
     <Container
@@ -186,7 +301,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
         accessibilityLabel="Encabezado de actividad"
       >
         <Button
-          title="← Salir"
+          title="Salir"
           onPress={handleExit}
           variant="outline"
           testID="exit-button"
@@ -201,7 +316,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Error Message */}
         {error && (
           <View
             style={[styles.card, { backgroundColor: theme.colors.error + '15' }]}
@@ -210,12 +324,11 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
             accessibilityLabel={`Error: ${error}`}
           >
             <Text variant="body" color={theme.colors.error}>
-              ⚠️ {error}
+              {error}
             </Text>
           </View>
         )}
 
-        {/* Instruction */}
         <View
           style={[styles.card, { backgroundColor: theme.colors.surface }]}
           testID="instruction-card"
@@ -223,30 +336,34 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           accessibilityLabel="Instrucciones"
         >
           <Text variant="h3" color={theme.colors.primary}>
-            📝 Instrucción
+            Instruccion
           </Text>
-          <Text variant="body" style={{ marginTop: 8 }} testID="instruction-text">
+          <Text
+            variant="body"
+            color={theme.colors.onSurface}
+            style={{ marginTop: 8 }}
+            testID="instruction-text"
+          >
             {activity.instruction}
           </Text>
-          {activity.supportText && (
+          {activity.supportText ? (
             <Text
               variant="caption"
-              color={theme.colors.info}
+              color={theme.colors.onSurface}
               style={{ marginTop: 8 }}
               testID="support-text"
             >
-              💡 {activity.supportText}
+              {activity.supportText}
             </Text>
-          )}
+          ) : null}
         </View>
 
-        {/* Prompt/Question */}
         <View
           style={[
             styles.card,
             {
-              backgroundColor: theme.colors.primary + '10',
-              borderLeftWidth: 4,
+              backgroundColor: theme.colors.surface,
+              borderLeftWidth: 6,
               borderLeftColor: theme.colors.primary,
             },
           ]}
@@ -254,17 +371,44 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           accessible={true}
           accessibilityLabel="Pregunta"
         >
+          {currentActivityImage ? (
+            <Image
+              source={currentActivityImage}
+              style={styles.activityImage}
+              resizeMode="contain"
+            />
+          ) : null}
+
+          {activity.audioPrompt ? (
+            <View style={styles.audioPromptBlock}>
+              <Text
+                variant="h3"
+                color={theme.colors.onSurface}
+                style={styles.audioPromptText}
+                testID="activity-sentence"
+              >
+                {activity.audioPrompt}
+              </Text>
+              <TouchableOpacity
+                style={[styles.listenButton, { backgroundColor: theme.colors.primary }]}
+                onPress={handlePlayPrompt}
+              >
+                <Text variant="caption" color={theme.colors.white}>Escuchar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
           <Text
             variant="h2"
             color={theme.colors.primary}
+            style={{ fontWeight: '700' }}
             testID="prompt-text"
           >
             {activity.prompt}
           </Text>
         </View>
 
-        {/* Options */}
-        {!showResult && activity.options && (
+        {!showResult && activity.options ? (
           <View
             testID="options-container"
             accessible={true}
@@ -298,25 +442,72 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
                 testID={`option-${index}`}
                 accessible={true}
                 accessibilityRole="button"
-                accessibilityLabel={`Opción ${index + 1}: ${option}${selectedOption === option ? ' seleccionada' : ''}`}
+                accessibilityLabel={`Opcion ${index + 1}: ${option}${selectedOption === option ? ' seleccionada' : ''}`}
               >
                 <Text
                   variant="body"
-                  color={
-                    selectedOption === option
-                      ? theme.colors.white
-                      : theme.colors.onBackground
-                  }
+                  style={{ fontWeight: '600' }}
+                  color={selectedOption === option ? theme.colors.white : theme.colors.onSurface}
                 >
                   {option}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        )}
+        ) : null}
 
-        {/* Result Screen */}
-        {showResult && (
+        {!showResult && activity.type === 'order' ? (
+          <View testID="order-container">
+            <Text variant="h3" style={{ marginBottom: 12, marginTop: 16 }}>
+              Tu respuesta:
+            </Text>
+            <View style={styles.sequenceContainer}>
+              {sequenceAnswer.map((item, index) => (
+                <TouchableOpacity
+                  key={`seq-${index}`}
+                  style={[styles.sequenceItem, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => handleRemoveSequenceItem(index)}
+                >
+                  <Text variant="body" color={theme.colors.white}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+              {sequenceAnswer.length === 0 ? (
+                <Text variant="caption" color={theme.colors.gray500 || '#9CA3AF'}>
+                  Toca los elementos de abajo para ordenarlos
+                </Text>
+              ) : null}
+            </View>
+
+            <Text variant="h3" style={{ marginBottom: 12, marginTop: 24 }}>
+              Elementos:
+            </Text>
+            <View style={styles.bankContainer}>
+              {activity.bank?.map((item: string, index: number) => {
+                const selectedCount = sequenceAnswer.filter(answer => answer === item).length;
+                const availableCount = activity.bank.filter((bankItem: string) => bankItem === item).length;
+
+                return (
+                  <TouchableOpacity
+                    key={`bank-${index}`}
+                    style={[
+                      styles.bankItem,
+                      {
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.primary,
+                        opacity: selectedCount >= availableCount ? 0.5 : 1,
+                      },
+                    ]}
+                    onPress={() => handlePressBankItem(item)}
+                  >
+                    <Text variant="body" color={theme.colors.onBackground}>{item}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        {showResult ? (
           <View
             style={[
               styles.resultCard,
@@ -336,7 +527,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               style={{ textAlign: 'center', marginBottom: 8 }}
               testID="result-title"
             >
-              {isCorrect ? '¡Correcto! ✓' : 'Intenta de nuevo'}
+              {isCorrect ? 'Correcto!' : 'Intenta de nuevo'}
             </Text>
             {isCorrect ? (
               <Text
@@ -362,15 +553,16 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
                   style={{ textAlign: 'center' }}
                   testID="correct-answer-text"
                 >
-                  {activity.correctAnswer}
+                  {activity.type === 'choice'
+                    ? activity.correctAnswer
+                    : activity.correctSequence?.join(' ')}
                 </Text>
               </View>
             )}
           </View>
-        )}
+        ) : null}
 
-        {/* Loading Indicator */}
-        {isSubmitting && (
+        {isSubmitting ? (
           <View
             style={styles.loadingContainer}
             testID="loading-indicator"
@@ -379,21 +571,25 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           >
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
-        )}
+        ) : null}
 
-        {/* Action Buttons */}
         <View
           style={styles.buttonContainer}
           testID="button-container"
           accessible={true}
-          accessibilityLabel="Botones de acción"
+          accessibilityLabel="Botones de accion"
         >
           {!showResult ? (
             <Button
-              title={isSubmitting ? 'Enviando...' : 'Enviar Respuesta'}
+              title={isSubmitting ? 'Enviando...' : 'Enviar respuesta'}
               onPress={handleSubmit}
               variant="primary"
-              disabled={isSubmitting || !selectedOption}
+              disabled={
+                isSubmitting ||
+                (activity.type === 'choice'
+                  ? !selectedOption
+                  : sequenceAnswer.length === 0)
+              }
               testID="submit-button"
             />
           ) : (
@@ -431,22 +627,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   card: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  activityImage: {
+    width: '100%',
+    height: 220,
     borderRadius: 12,
-    padding: 16,
     marginBottom: 16,
+  },
+  audioPromptBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  audioPromptText: {
+    flex: 1,
+    lineHeight: 26,
+  },
+  listenButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  optionButton: {
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 60,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
-  },
-  optionButton: {
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 50,
   },
   resultCard: {
     borderRadius: 12,
@@ -462,6 +684,41 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 24,
     gap: 12,
+  },
+  sequenceContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    minHeight: 60,
+    alignItems: 'center',
+    gap: 8,
+  },
+  sequenceItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  bankContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  bankItem: {
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 2,
+    minWidth: 70,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   errorText: {
     textAlign: 'center',

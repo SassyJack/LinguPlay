@@ -15,6 +15,7 @@ export interface LoginResponse {
     id: string;
     displayName: string;
     email: string;
+    role: 'user' | 'admin';
   };
   subscriptionTier: 'free' | 'premium';
 }
@@ -24,6 +25,7 @@ export interface SignupRequest {
   email: string;
   password: string;
   age?: number;
+  role?: 'user' | 'admin';
 }
 
 // Game Progress
@@ -85,6 +87,9 @@ export interface UserProfile {
   displayName: string;
   email: string;
   subscriptionTier: 'free' | 'premium';
+  role: 'user' | 'admin';
+  accountStatus?: 'active' | 'deleted';
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
 }

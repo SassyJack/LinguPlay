@@ -1,14 +1,16 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * LevelSelectorScreen - Show 3 difficulty levels for selected component
@@ -26,8 +28,14 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
   const { theme } = useTheme();
   const { navigateTo, goBack, selectedComponentId } = useUI();
   const { completedActivities } = useGame();
+  const { animatedStyle, startAnimation } = useFadeInAnimation();
 
   const currentComponentId = componentId || selectedComponentId;
+
+  // Trigger animation on mount
+  useEffect(() => {
+    startAnimation();
+  }, [startAnimation]);
 
   const currentComponent = useMemo(
     () => components.find((c) => c.id === currentComponentId),
@@ -38,9 +46,19 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
   const handleSelectLevel = useCallback(
     (levelId: string) => {
       if (currentComponentId) {
+        // Find the first activity of this level to set it in the store
+        const component = components.find(c => c.id === currentComponentId);
+        const level = component?.levels.find((l: any) => l.id === levelId);
+        const firstActivityId = level?.activities[0]?.id;
+
+        if (!firstActivityId) {
+          return;
+        }
+
         navigateTo('activity', {
           componentId: currentComponentId,
           levelId,
+          activityId: firstActivityId,
         });
       }
     },
@@ -141,7 +159,8 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
         contentContainerStyle={styles.container}
         testID="levels-scroll-view"
       >
-        {currentComponent.levels.map((level: any, index: number) => {
+        <Animated.View style={animatedStyle}>
+          {currentComponent.levels.map((level: any, index: number) => {
           const progress = getLevelProgress(currentComponent.id, level.id);
           const progressPercentage = progress.toFixed(0);
           const isCompleted = progress === 100;
@@ -244,7 +263,8 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
               </View>
             </TouchableOpacity>
           );
-        })}
+          })}
+        </Animated.View>
       </ScrollView>
     </Container>
   );

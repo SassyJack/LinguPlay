@@ -4,6 +4,7 @@ import {
   Text as RNText,
   TextProps as RNTextProps,
 } from 'react-native';
+import { useTheme } from '@/theme';
 
 interface TextProps extends RNTextProps {
   variant?: 'h1' | 'h2' | 'h3' | 'body' | 'caption';
@@ -20,7 +21,8 @@ const Text: React.FC<TextProps> = ({
   testID,
   ...props
 }) => {
-  const variantStyle = getVariantStyle(variant);
+  const { theme } = useTheme();
+  const variantStyle = getVariantStyle(variant, theme.colors.onBackground, theme.colors.onSurface);
   const customStyle = color ? { ...variantStyle, color } : variantStyle;
 
   return (
@@ -30,20 +32,38 @@ const Text: React.FC<TextProps> = ({
   );
 };
 
-const getVariantStyle = (variant: string) => {
+const getVariantStyle = (
+  variant: string,
+  onBackground: string,
+  onSurface: string
+) => {
   switch (variant) {
     case 'h1':
-      return styles.h1;
+      return {
+        ...styles.h1,
+        color: onBackground,
+      };
     case 'h2':
-      return styles.h2;
+      return {
+        ...styles.h2,
+        color: onBackground,
+      };
     case 'h3':
-      return styles.h3;
-    case 'body':
-      return styles.body;
+      return {
+        ...styles.h3,
+        color: onBackground,
+      };
     case 'caption':
-      return styles.caption;
+      return {
+        ...styles.caption,
+        color: onSurface,
+      };
+    case 'body':
     default:
-      return styles.body;
+      return {
+        ...styles.body,
+        color: onSurface,
+      };
   }
 };
 
@@ -51,32 +71,27 @@ const styles = StyleSheet.create({
   h1: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000000',
     marginVertical: 8,
   },
   h2: {
     fontSize: 24,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: '700',
     marginVertical: 6,
   },
   h3: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#000000',
     marginVertical: 4,
   },
   body: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#333333',
-    lineHeight: 24,
+    fontSize: 18,
+    fontWeight: '500',
+    lineHeight: 26,
   },
   caption: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#666666',
-    lineHeight: 16,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 18,
   },
 });
 

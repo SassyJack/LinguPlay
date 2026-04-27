@@ -69,6 +69,8 @@ export class AudioService {
     }
   }
 
+  private currentMusicName: string | null = null;
+
   /**
    * Play background music
    */
@@ -77,6 +79,11 @@ export class AudioService {
     loop = true
   ) {
     if (!this.isMusicEnabled) return;
+    
+    // Don't restart if the same music is already playing
+    if (this.currentMusicName === musicName && this.backgroundMusic) {
+      return;
+    }
 
     try {
       const musicMap = {
@@ -89,6 +96,7 @@ export class AudioService {
       if (this.backgroundMusic) {
         await this.backgroundMusic.stopAsync();
         await this.backgroundMusic.unloadAsync();
+        this.backgroundMusic = null;
       }
 
       // Load and play new music
@@ -102,6 +110,7 @@ export class AudioService {
       }
 
       this.backgroundMusic = sound;
+      this.currentMusicName = musicName;
       await sound.playAsync();
     } catch (error) {
       console.warn(`Error playing music ${musicName}:`, error);
@@ -115,6 +124,7 @@ export class AudioService {
     try {
       if (this.backgroundMusic) {
         await this.backgroundMusic.stopAsync();
+        this.currentMusicName = null;
       }
     } catch (error) {
       console.warn('Error stopping music:', error);

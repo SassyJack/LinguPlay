@@ -7,6 +7,22 @@
     "userInterfaceStyle": "light",
     "platforms": ["android", "ios", "web"],
     "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.linguaplay.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.linguaplay.app",
+      "buildNumber": "1"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    },
     "web": {
       "bundler": "metro"
     }

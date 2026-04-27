@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Text } from '../components';
 import { useUIStore } from '../store/uiStore';
 import { useGameStore } from '../store/gameStore';
 import { useUserStore } from '../store/userStore';
@@ -10,6 +11,9 @@ import {
   LevelSelectorScreen,
   ActivityScreen,
   ResultsScreen,
+  LoginScreen,
+  SignupScreen,
+  AdminDashboardScreen,
 } from './index';
 import { useTheme } from '../theme';
 import { GameSyncService, useConnectivity } from '../api';
@@ -28,28 +32,26 @@ export const AppContainer: React.FC = () => {
   const { theme } = useTheme();
   const { isOnline } = useConnectivity();
 
-  // Get store states
   const currentScreen = useUIStore(state => state.currentScreen);
   const selectedComponentId = useUIStore(state => state.selectedComponentId);
   const selectedLevelId = useUIStore(state => state.selectedLevelId);
   const selectedActivityId = useUIStore(state => state.selectedActivityId);
+  const showNotification = useUIStore(state => state.showNotification);
+  const notificationMessage = useUIStore(state => state.notificationMessage);
+  const notificationType = useUIStore(state => state.notificationType);
 
   const gameHydrate = useGameStore(state => state.hydrate);
   const gameIsHydrated = useGameStore(state => state.isHydrated);
   const gameUnlockAchievement = useGameStore(state => state.unlockAchievement);
-  const userHydrate = useUserStore(state => state.hydrate);
+  const userHydrate = useUserStore.getState().hydrate;
+  const userIsAuthenticated = useUserStore(state => state.isAuthenticated);
   const userIsHydrated = useUserStore(state => state.isHydrated);
 
-  /**
-   * Initialize all services on app launch
-   */
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize notifications
         await notificationService.initialize();
 
-        // Load persisted game state
         const gameState = await hydrateGameStore();
         if (gameState) {
           gameHydrate(gameState);
@@ -57,18 +59,16 @@ export const AppContainer: React.FC = () => {
           gameHydrate({});
         }
 
-        // Load persisted user state
         const userState = await hydrateUserStore();
-        if (userState) {
+        if (userState && userState.user) {
           userHydrate(userState);
         } else {
-          userHydrate({});
+          userHydrate({ user: null, isAuthenticated: false });
         }
       } catch (error) {
         console.error('Error initializing app:', error);
-        // Set default hydrated state even on error
         gameHydrate({});
-        userHydrate({});
+        userHydrate({ user: null, isAuthenticated: false });
       } finally {
         setIsInitializing(false);
       }
@@ -76,15 +76,11 @@ export const AppContainer: React.FC = () => {
 
     initializeApp();
 
-    // Cleanup on unmount
     return () => {
       audioService.cleanup();
     };
   }, [gameHydrate, userHydrate]);
 
-  /**
-   * Check for new achievements
-   */
   useEffect(() => {
     if (gameIsHydrated && userIsHydrated) {
       const gameState = useGameStore.getState();
@@ -95,7 +91,6 @@ export const AppContainer: React.FC = () => {
 
       for (const achievement of newAchievements) {
         gameUnlockAchievement(achievement);
-        // Send notification
         const achievementDef = require('../services/achievementService').ACHIEVEMENTS[achievement];
         if (achievementDef) {
           notificationService.sendAchievementNotification(
@@ -106,27 +101,20 @@ export const AppContainer: React.FC = () => {
         }
       }
     }
-  }, [gameIsHydrated, gameUnlockAchievement]);
+  }, [gameIsHydrated, userIsHydrated, gameUnlockAchievement]);
 
-  /**
-   * Sync game progress when online status changes
-   */
   useEffect(() => {
     if (isOnline && gameIsHydrated) {
       syncGameProgress();
     }
   }, [isOnline, gameIsHydrated]);
 
-  /**
-   * Sync game progress to server
-   */
   const syncGameProgress = async () => {
     try {
       const gameState = useGameStore.getState();
       const userState = useUserStore.getState();
 
       if (!userState.user) {
-        // Not authenticated, skip sync
         return;
       }
 
@@ -150,7 +138,6 @@ export const AppContainer: React.FC = () => {
     }
   };
 
-  // Show loading indicator while initializing
   if (isInitializing || !gameIsHydrated || !userIsHydrated) {
     return (
       <View
@@ -170,17 +157,23 @@ export const AppContainer: React.FC = () => {
     );
   }
 
-  // Render screens based on current navigation state
   const renderScreen = () => {
+    if (!userIsAuthenticated) {
+      switch (currentScreen) {
+        case 'signup':
+          return <SignupScreen />;
+        default:
+          return <LoginScreen />;
+      }
+    }
+
     switch (currentScreen) {
       case 'home':
         return <HomeScreen testID="home-screen" />;
+      case 'admin_dashboard':
+        return <AdminDashboardScreen />;
       case 'component':
-        return selectedComponentId ? (
-          <ComponentSelectorScreen testID="component-selector-screen" />
-        ) : (
-          <HomeScreen testID="home-screen" />
-        );
+        return <ComponentSelectorScreen testID="component-selector-screen" />;
       case 'level':
         return selectedComponentId ? (
           <LevelSelectorScreen
@@ -191,15 +184,13 @@ export const AppContainer: React.FC = () => {
           <HomeScreen testID="home-screen" />
         );
       case 'activity':
-        return selectedActivityId ? (
+        return (
           <ActivityScreen
             componentId={selectedComponentId || ''}
             levelId={selectedLevelId || ''}
-            activityId={selectedActivityId}
+            activityId={selectedActivityId || ''}
             testID="activity-screen"
           />
-        ) : (
-          <HomeScreen testID="home-screen" />
         );
       case 'results':
         return <ResultsScreen testID="results-screen" />;
@@ -207,6 +198,15 @@ export const AppContainer: React.FC = () => {
         return <HomeScreen testID="home-screen" />;
     }
   };
+
+  const toastBackgroundColor =
+    notificationType === 'success'
+      ? theme.colors.success
+      : notificationType === 'warning'
+        ? theme.colors.warning
+        : notificationType === 'error'
+          ? theme.colors.error
+          : theme.colors.info;
 
   return (
     <View
@@ -216,6 +216,37 @@ export const AppContainer: React.FC = () => {
       }}
     >
       {renderScreen()}
+      {showNotification ? (
+        <View
+          pointerEvents="none"
+          style={[styles.toast, { backgroundColor: toastBackgroundColor }]}
+        >
+          <Text variant="body" color={theme.colors.white} style={styles.toastText}>
+            {notificationMessage}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  toast: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    top: 56,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 1000,
+  },
+  toastText: {
+    lineHeight: 22,
+  },
+});

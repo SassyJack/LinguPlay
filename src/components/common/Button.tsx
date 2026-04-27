@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text as RNText } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Text as RNText,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 interface ButtonProps {
   onPress: () => void;
@@ -7,6 +13,7 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
   disabled?: boolean;
   testID?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -15,12 +22,13 @@ const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   disabled = false,
   testID,
+  style,
 }) => {
   const styles = getStyles(variant, disabled);
 
   return (
     <TouchableOpacity
-      style={styles.button}
+      style={[styles.button, style]}
       onPress={onPress}
       disabled={disabled}
       testID={testID}
@@ -41,8 +49,8 @@ const getStyles = (variant: string, disabled: boolean) => {
   };
 
   const baseText = {
-    fontSize: 16,
-    fontWeight: '600' as const,
+    fontSize: 18, // Aumentado de 16
+    fontWeight: '700' as const, // Aumentado de 600
   };
 
   switch (variant) {
@@ -50,7 +58,7 @@ const getStyles = (variant: string, disabled: boolean) => {
       return StyleSheet.create({
         button: {
           ...baseButton,
-          backgroundColor: '#007AFF',
+          backgroundColor: '#0051D5', // Un azul un poco más oscuro para mejor contraste con texto blanco
         },
         text: {
           ...baseText,
@@ -62,7 +70,7 @@ const getStyles = (variant: string, disabled: boolean) => {
       return StyleSheet.create({
         button: {
           ...baseButton,
-          backgroundColor: '#E5E5EA',
+          backgroundColor: '#E5E7EB', // Gris más claro de la paleta
         },
         text: {
           ...baseText,
@@ -75,12 +83,12 @@ const getStyles = (variant: string, disabled: boolean) => {
         button: {
           ...baseButton,
           backgroundColor: 'transparent',
-          borderWidth: 1,
-          borderColor: '#007AFF',
+          borderWidth: 2, // Aumentado de 1 para visibilidad
+          borderColor: '#0051D5',
         },
         text: {
           ...baseText,
-          color: '#007AFF',
+          color: '#0051D5',
         },
       });
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * ComponentSelectorScreen - Browse language components with progress tracking
@@ -25,6 +27,15 @@ export const ComponentSelectorScreen: React.FC<ComponentSelectorScreenProps> = (
   const { theme } = useTheme();
   const { navigateTo, goBack } = useUI();
   const { completedActivities } = useGame();
+
+  // Animations
+  const { animatedStyle: fadeInStyle, startAnimation: startFadeIn } = useFadeInAnimation();
+  const { animatedStyle: slideInStyle, startAnimation: startSlideIn } = useSlideInAnimation('left');
+
+  useEffect(() => {
+    startFadeIn();
+    setTimeout(() => startSlideIn(), 150);
+  }, []);
 
   // Memoized callback
   const handleSelectComponent = useCallback(
@@ -93,7 +104,8 @@ export const ComponentSelectorScreen: React.FC<ComponentSelectorScreenProps> = (
         </Text>
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
+        style={[fadeInStyle]}
         contentContainerStyle={styles.container}
         testID="components-scroll-view"
       >
@@ -229,7 +241,7 @@ export const ComponentSelectorScreen: React.FC<ComponentSelectorScreenProps> = (
             aspecto del lenguaje. Avanza a tu propio ritmo.
           </Text>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </Container>
   );
 };
