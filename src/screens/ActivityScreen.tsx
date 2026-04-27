@@ -83,7 +83,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     setIsCorrect(false);
     setIsSubmitting(false);
     setError(null);
-    audioService.playBackgroundMusic('game');
 
     if (activity.audioPrompt) {
       speechService.speak(activity.audioPrompt);

@@ -68,6 +68,9 @@ export const useUIStore = create<UIStoreState>(set => ({
       if (state.currentScreen === 'component') {
         return { currentScreen: 'home' };
       }
+      if (state.currentScreen === 'results') {
+        return { currentScreen: 'home' };
+      }
       return state;
     });
   },

@@ -10,7 +10,7 @@ import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
-import { useFadeInAnimation, useSlideInAnimation, audioService } from '@/services';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * HomeScreen - Main welcome hub showing personalized greeting,
@@ -47,9 +47,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   useEffect(() => {
     startFadeIn();
     setTimeout(() => startSlideIn(), 150);
-    
-    // Play menu background music
-    audioService.playBackgroundMusic('menu');
   }, []);
 
   const handleStartActivity = useCallback(() => {
