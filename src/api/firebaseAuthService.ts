@@ -12,12 +12,40 @@ import {
   onAuthStateChanged,
   User,
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { ref, set, get, update } from 'firebase/database';
 import { auth, database } from './firebaseConfig';
 import { apiClient } from './client';
 import { LoginRequest, LoginResponse, SignupRequest, UserProfile } from './types';
 
 export class FirebaseAuthService {
+  private static getReadableAuthErrorMessage(error: unknown): string {
+    if (!(error instanceof FirebaseError)) {
+      return 'No fue posible completar la autenticacion. Intenta de nuevo.';
+    }
+
+    switch (error.code) {
+      case 'auth/invalid-email':
+        return 'El correo electronico no tiene un formato valido.';
+      case 'auth/email-already-in-use':
+        return 'Ya existe una cuenta registrada con este correo electronico.';
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'El correo o la contrasena son incorrectos.';
+      case 'auth/weak-password':
+        return 'La contrasena es demasiado debil. Debe tener al menos 6 caracteres.';
+      case 'auth/missing-password':
+        return 'Debes ingresar una contrasena.';
+      case 'auth/network-request-failed':
+        return 'No se pudo conectar con el servidor. Revisa tu conexion a internet.';
+      case 'auth/too-many-requests':
+        return 'Se bloquearon temporalmente los intentos. Espera un momento e intenta de nuevo.';
+      default:
+        return 'No fue posible completar la autenticacion. Intenta de nuevo.';
+    }
+  }
+
   private static async saveUserProfile(
     userId: string,
     profile: UserProfile
@@ -30,11 +58,12 @@ export class FirebaseAuthService {
    */
   static async signup(request: SignupRequest): Promise<LoginResponse> {
     try {
-      console.log('Iniciando registro en Firebase Auth para:', request.email);
+      const normalizedEmail = request.email.trim().toLowerCase();
+      console.log('Iniciando registro en Firebase Auth para:', normalizedEmail);
       // Create auth user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        request.email,
+        normalizedEmail,
         request.password
       );
 
@@ -50,9 +79,10 @@ export class FirebaseAuthService {
       const userProfile: UserProfile = {
         id: user.uid,
         displayName: request.displayName,
-        email: request.email,
+        email: normalizedEmail,
         subscriptionTier: 'free',
         role: request.role || 'user',
+        accountStatus: 'active',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -74,14 +104,14 @@ export class FirebaseAuthService {
         user: {
           id: user.uid,
           displayName: request.displayName,
-          email: request.email,
+          email: normalizedEmail,
           role: userProfile.role,
         },
         subscriptionTier: 'free',
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error detallado en Signup:', error);
-      throw new Error(error.message || 'Signup failed');
+      throw new Error(this.getReadableAuthErrorMessage(error));
     }
   }
 
@@ -90,9 +120,10 @@ export class FirebaseAuthService {
    */
   static async login(request: LoginRequest): Promise<LoginResponse> {
     try {
+      const normalizedEmail = request.email.trim().toLowerCase();
       const userCredential = await signInWithEmailAndPassword(
         auth,
-        request.email,
+        normalizedEmail,
         request.password
       );
 
@@ -112,6 +143,7 @@ export class FirebaseAuthService {
             email: user.email || '',
             subscriptionTier: 'free',
             role: 'user',
+            accountStatus: 'active',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -125,9 +157,15 @@ export class FirebaseAuthService {
           email: user.email || '',
           subscriptionTier: 'free',
           role: 'user',
+          accountStatus: 'active',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
+      }
+
+      if (userProfile.accountStatus === 'deleted') {
+        await signOut(auth);
+        throw new Error('Esta cuenta fue desactivada por un administrador.');
       }
 
       // Get token
@@ -144,9 +182,9 @@ export class FirebaseAuthService {
         },
         subscriptionTier: userProfile.subscriptionTier,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
-      throw new Error(error.message || 'Login failed');
+      throw new Error(this.getReadableAuthErrorMessage(error));
     }
   }
 

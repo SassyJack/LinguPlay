@@ -88,6 +88,8 @@ export interface UserProfile {
   email: string;
   subscriptionTier: 'free' | 'premium';
   role: 'user' | 'admin';
+  accountStatus?: 'active' | 'deleted';
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
 }

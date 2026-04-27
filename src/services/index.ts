@@ -17,6 +17,7 @@ export {
 
 export { HapticService } from './hapticService';
 export { audioService, type AudioService as AudioServiceType } from './audioService';
+export { speechService } from './speechService';
 export {
   ACHIEVEMENTS,
   checkAchievementsToUnlock,
