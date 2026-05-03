@@ -5,6 +5,7 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
@@ -86,6 +87,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           accessible={true}
           accessibilityLabel={`Bienvenido ${displayName}${isPremium ? ' Premium' : ''}`}
         >
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/logo.jpg')} style={styles.logo} />
+          </View>
           <View style={styles.headerTop}>
             <View>
               <Text
@@ -251,6 +255,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    resizeMode: 'cover',
   },
   headerTop: {
     flexDirection: 'row',
