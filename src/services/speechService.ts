@@ -1,5 +1,6 @@
 import * as Speech from 'expo-speech';
 import { Platform } from 'react-native';
+import { Audio } from 'expo-av';
 
 interface ResponsiveVoice {
   speak: (text: string, voice: string, options?: { rate?: number; pitch?: number; onend?: () => void }) => void;
@@ -17,6 +18,9 @@ declare global {
 
 let isInitialized = false;
 let selectedVoice: SpeechSynthesisVoice | null = null;
+let currentSound: Audio.Sound | null = null;
+
+const ELEVENLABS_MAX_CHARS = 50;
 
 function loadResponsiveVoice(): Promise<void> {
   return new Promise((resolve) => {
@@ -42,6 +46,48 @@ function loadResponsiveVoice(): Promise<void> {
   });
 }
 
+async function speakWithElevenLabs(text: string): Promise<boolean> {
+  if (Platform.OS !== 'web') return false;
+
+  const proxyUrl = process.env.EXPO_PUBLIC_ELEVENLABS_PROXY_URL || 'http://localhost:3001';
+
+  try {
+    if (currentSound) {
+      await currentSound.unloadAsync();
+      currentSound = null;
+    }
+
+    const response = await fetch(`${proxyUrl}/speak?text=${encodeURIComponent(text)}`, {
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: audioUrl },
+      { shouldPlay: true }
+    );
+
+    currentSound = sound;
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync();
+        currentSound = null;
+        URL.revokeObjectURL(audioUrl);
+      }
+    });
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 function getBestWebVoice(): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
     return null;
@@ -56,11 +102,10 @@ function getBestWebVoice(): SpeechSynthesisVoice | null {
 
   const preferredNames = [
     'Google español',
-    'Microsoft Pablo',
-    'Microsoft Helena',
-    'Microsoft Sabina',
     'Google Mexico',
     'Google Spain',
+    'Microsoft Pablo',
+    'Microsoft Helena',
   ];
 
   for (const name of preferredNames) {
@@ -80,8 +125,8 @@ function speakWithWebSpeech(text: string): void {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'es-MX';
-  utterance.pitch = 1.1;
-  utterance.rate = 0.85;
+  utterance.pitch = 1.15;
+  utterance.rate = 0.9;
 
   if (!selectedVoice) {
     selectedVoice = getBestWebVoice();
@@ -119,10 +164,15 @@ export class SpeechService {
       await this.stop();
 
       if (Platform.OS === 'web') {
+        if (trimmedText.length > ELEVENLABS_MAX_CHARS) {
+          const elevenLabsOk = await speakWithElevenLabs(trimmedText);
+          if (elevenLabsOk) return;
+        }
+
         if (!isInitialized) {
           await loadResponsiveVoice();
           isInitialized = true;
-          await new Promise((r) => setTimeout(r, 300));
+          await new Promise((r) => setTimeout(r, 200));
         }
 
         if (window.responsiveVoice) {
@@ -133,15 +183,13 @@ export class SpeechService {
               v.includes('Spanish Male') ||
               v.includes('Laura') ||
               v.includes('Diego') ||
-              v.includes('Pablo') ||
-              v.includes('es-MX') ||
-              v.includes('es-ES')
+              v.includes('Pablo')
           );
 
           if (spanishVoice) {
             window.responsiveVoice.speak(trimmedText, spanishVoice, {
-              rate: 0.85,
-              pitch: 1.1,
+              rate: 0.9,
+              pitch: 1.15,
             });
             return;
           }
@@ -198,6 +246,12 @@ export class SpeechService {
 
   async stop(): Promise<void> {
     try {
+      if (currentSound) {
+        await currentSound.stopAsync();
+        await currentSound.unloadAsync();
+        currentSound = null;
+      }
+
       if (Platform.OS === 'web') {
         if (window.responsiveVoice) {
           window.responsiveVoice.cancel();
