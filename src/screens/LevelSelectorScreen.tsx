@@ -171,7 +171,7 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
               style={[
                 styles.levelCard,
                 {
-                  backgroundColor: level.color + '20' || '#F3F4F6',
+                  backgroundColor: level.color + '40' || '#F3F4F6',
                   borderLeftColor: level.color || theme.colors.primary,
                 },
               ]}

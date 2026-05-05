@@ -6,6 +6,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useTheme } from '@/theme';
 
 interface ButtonProps {
   onPress: () => void;
@@ -24,7 +25,8 @@ const Button: React.FC<ButtonProps> = ({
   testID,
   style,
 }) => {
-  const styles = getStyles(variant, disabled);
+  const { theme } = useTheme();
+  const styles = getStyles(variant, disabled, theme);
 
   return (
     <TouchableOpacity
@@ -38,19 +40,24 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
-const getStyles = (variant: string, disabled: boolean) => {
+const getStyles = (variant: string, disabled: boolean, theme: any) => {
   const baseButton = {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 20,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     opacity: disabled ? 0.6 : 1,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
   };
 
   const baseText = {
-    fontSize: 18, // Aumentado de 16
-    fontWeight: '700' as const, // Aumentado de 600
+    fontSize: 20,
+    fontWeight: '800' as const,
   };
 
   switch (variant) {
@@ -58,7 +65,7 @@ const getStyles = (variant: string, disabled: boolean) => {
       return StyleSheet.create({
         button: {
           ...baseButton,
-          backgroundColor: '#0051D5', // Un azul un poco más oscuro para mejor contraste con texto blanco
+          backgroundColor: theme.colors.primary,
         },
         text: {
           ...baseText,
@@ -70,11 +77,11 @@ const getStyles = (variant: string, disabled: boolean) => {
       return StyleSheet.create({
         button: {
           ...baseButton,
-          backgroundColor: '#E5E7EB', // Gris más claro de la paleta
+          backgroundColor: theme.colors.accent,
         },
         text: {
           ...baseText,
-          color: '#000000',
+          color: '#FFFFFF',
         },
       });
 
@@ -83,12 +90,14 @@ const getStyles = (variant: string, disabled: boolean) => {
         button: {
           ...baseButton,
           backgroundColor: 'transparent',
-          borderWidth: 2, // Aumentado de 1 para visibilidad
-          borderColor: '#0051D5',
+          borderWidth: 3,
+          borderColor: theme.colors.primary,
+          shadowOpacity: 0,
+          elevation: 0,
         },
         text: {
           ...baseText,
-          color: '#0051D5',
+          color: theme.colors.primary,
         },
       });
 

@@ -262,7 +262,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             key={index}
             style={[
               styles.componentProgressCard,
-              { backgroundColor: stats.accent + '10' || '#F3F4F6' },
+              { backgroundColor: stats.accent + '25' || '#F3F4F6' },
             ]}
             testID={`component-progress-${index}`}
             accessible={true}

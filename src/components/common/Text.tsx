@@ -69,29 +69,29 @@ const getVariantStyle = (
 
 const styles = StyleSheet.create({
   h1: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
     marginVertical: 8,
   },
   h2: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     marginVertical: 6,
   },
   h3: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     marginVertical: 4,
   },
   body: {
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: '600',
     lineHeight: 26,
   },
   caption: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 18,
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 20,
   },
 });
 

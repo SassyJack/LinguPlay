@@ -10,6 +10,7 @@ import {
   Switch,
   Modal,
   Pressable,
+  Image,
 } from 'react-native';
 import { Button, Text, Container } from '@/components';
 import { useUI, useUser } from '@/hooks';
@@ -83,8 +84,9 @@ export const SignupScreen: React.FC = () => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
+            <Image source={require('../../assets/logo.jpg')} style={styles.logo} />
             <Text variant="h1" color={theme.colors.primary}>Crear cuenta</Text>
-            <Text variant="body" color={theme.colors.onBackground}>Unete a la aventura de LinguaPlay</Text>
+            <Text variant="body" color={theme.colors.onBackground}>Únete a la aventura de LinguaPlay</Text>
           </View>
 
           <View style={styles.form}>
@@ -216,6 +218,13 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 30,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    resizeMode: 'cover',
+    marginBottom: 16,
   },
   form: {
     width: '100%',

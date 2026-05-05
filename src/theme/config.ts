@@ -69,34 +69,34 @@ export interface Theme {
 }
 
 const lightColors: ThemeColors = {
-  primary: '#0051D5', // Azul más profundo para mejor contraste
-  primaryLight: '#007AFF',
-  primaryDark: '#003A9B',
-  secondary: '#5AC8FA',
-  accent: '#E67E22', // Naranja un poco más oscuro
+  primary: '#4A90D9', // Azul brillante amigable
+  primaryLight: '#6FB1FC',
+  primaryDark: '#3273C4',
+  secondary: '#50C878', // Verde esmeralda vivo
+  accent: '#FF8C42', // Naranja cálido
 
-  background: '#FFFFFF',
-  surface: '#F8F9FA',
-  surfaceVariant: '#E9ECEF',
-  onBackground: '#000000',
-  onSurface: '#111111',
+  background: '#FFF5E6', // Fondo crema cálido
+  surface: '#FFFFFF',
+  surfaceVariant: '#E8F5E9',
+  onBackground: '#2C3E50',
+  onSurface: '#34495E',
 
-  success: '#27AE60', // Verde más oscuro
-  error: '#C0392B', // Rojo más profundo
-  warning: '#F39C12',
-  info: '#2980B9',
+  success: '#2ECC71',
+  error: '#E74C3C',
+  warning: '#F1C40F',
+  info: '#3498DB',
 
-  black: '#000000',
+  black: '#2C3E50',
   white: '#FFFFFF',
-  gray100: '#F8F9FA',
-  gray200: '#E9ECEF',
-  gray300: '#DEE2E6',
-  gray400: '#CED4DA',
-  gray500: '#ADB5BD',
-  gray600: '#6C757D',
-  gray700: '#495057',
-  gray800: '#343A40',
-  gray900: '#212529',
+  gray100: '#FFF9F0',
+  gray200: '#F0F7FF',
+  gray300: '#E1F5FE',
+  gray400: '#B3E5FC',
+  gray500: '#81D4FA',
+  gray600: '#4FC3F7',
+  gray700: '#29B6F6',
+  gray800: '#03A9F4',
+  gray900: '#0288D1',
 };
 
 const darkColors: ThemeColors = {
@@ -131,12 +131,12 @@ const darkColors: ThemeColors = {
 };
 
 const typography: ThemeTypography = {
-  h1: { fontSize: 28, fontWeight: '700' },
-  h2: { fontSize: 24, fontWeight: '600' },
-  h3: { fontSize: 18, fontWeight: '600' },
-  body1: { fontSize: 16, fontWeight: '400' },
-  body2: { fontSize: 14, fontWeight: '500' },
-  caption: { fontSize: 12, fontWeight: '400' },
+  h1: { fontSize: 32, fontWeight: '800' },
+  h2: { fontSize: 28, fontWeight: '800' },
+  h3: { fontSize: 22, fontWeight: '700' },
+  body1: { fontSize: 18, fontWeight: '600' },
+  body2: { fontSize: 16, fontWeight: '600' },
+  caption: { fontSize: 16, fontWeight: '600' },
 };
 
 const spacing = {
@@ -150,10 +150,10 @@ const spacing = {
 
 const borderRadius = {
   none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 8,
+  md: 16,
+  lg: 20,
+  xl: 24,
 };
 
 export const lightTheme: Theme = {

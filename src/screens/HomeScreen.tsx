@@ -97,7 +97,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 color={theme.colors.primary}
                 testID="welcome-text"
               >
-                ¡Bienvenido a LinguaPlay!
+                ¡Hola! 🎮 Bienvenido a LinguaPlay
               </Text>
               <Text
                 variant="body"
@@ -133,14 +133,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           <View
             style={[
               styles.statCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: '#E3F2FD', borderColor: '#64B5F6' },
             ]}
             testID="score-card"
             accessible={true}
             accessibilityLabel={`Puntos: ${score}`}
           >
             <Text variant="h3" color={theme.colors.primary}>
-              Puntos
+              ⭐ Puntos
             </Text>
             <Text variant="h2" color={theme.colors.primary} testID="score-value">
               {score}
@@ -151,14 +151,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           <View
             style={[
               styles.statCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: '#FFF8E1', borderColor: '#FFD54F' },
             ]}
             testID="stars-card"
             accessible={true}
             accessibilityLabel={`Estrellas: ${stars}`}
           >
             <Text variant="h3" color={theme.colors.accent}>
-              Estrellas
+              🌟 Estrellas
             </Text>
             <Text variant="h2" color={theme.colors.accent} testID="stars-value">
               {stars}⭐
@@ -169,7 +169,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           <View
             style={[
               styles.statCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: '#E8F5E9', borderColor: '#81C784' },
             ]}
             testID="progress-card"
             accessible={true}
@@ -217,15 +217,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           accessibilityLabel="Información del sistema"
         >
           <Text variant="h3" color={theme.colors.onBackground}>
-            📚 Cómo Funciona
+            📚 ¿Cómo se juega?
           </Text>
           <Text
             variant="caption"
             color={theme.colors.onSurface}
             style={{ marginTop: 8 }}
           >
-            Selecciona un componente de lenguaje, completa los niveles y gana
-            puntos. Acumula estrellas para desbloquear logros especiales.
+            Elige un componente del lenguaje, completa los niveles y gana
+            puntos. ¡Acumula estrellas para desbloquear logros especiales!
           </Text>
           <View
             style={styles.attemptsBanner}
@@ -253,18 +253,23 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 24,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 3,
+    borderBottomColor: '#FFD93D',
+    backgroundColor: '#FFF0DB',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   logoContainer: {
     alignItems: 'center',
     marginBottom: 16,
   },
   logo: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     resizeMode: 'cover',
+    borderWidth: 3,
+    borderColor: '#FFD93D',
   },
   headerTop: {
     flexDirection: 'row',
@@ -282,15 +287,17 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
     minHeight: 100,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   actionContainer: {
     paddingHorizontal: 16,
@@ -300,9 +307,11 @@ const styles = StyleSheet.create({
   infoSection: {
     marginHorizontal: 16,
     marginBottom: 32,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    padding: 20,
+    backgroundColor: '#FFF0DB',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FFD93D',
   },
   attemptsBanner: {
     padding: 8,

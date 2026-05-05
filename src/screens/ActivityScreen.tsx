@@ -114,7 +114,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       setSequenceAnswer(prev => [...prev, item]);
       setError(null);
       HapticService.tap();
-      audioService.playSoundEffect('tap');
       speechService.speak(item);
     }
   }, [activity, sequenceAnswer, showResult]);
@@ -125,7 +124,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     const removedItem = sequenceAnswer[index];
     setSequenceAnswer(prev => prev.filter((_, itemIndex) => itemIndex !== index));
     HapticService.tap();
-    audioService.playSoundEffect('tap');
     if (removedItem) {
       speechService.speak(removedItem);
     }
@@ -135,7 +133,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     setSelectedOption(option);
     setError(null);
     HapticService.tap();
-    audioService.playSoundEffect('tap');
     speechService.speak(option);
   }, []);
 
@@ -638,7 +635,7 @@ const styles = StyleSheet.create({
   activityImage: {
     width: '100%',
     height: 220,
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 16,
   },
   audioPromptBlock: {
@@ -654,23 +651,23 @@ const styles = StyleSheet.create({
   listenButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   optionButton: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 18,
     marginBottom: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 60,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 4,
   },
   resultCard: {
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 24,
     marginVertical: 24,
     alignItems: 'center',
@@ -688,8 +685,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 12,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 16,
     minHeight: 60,
     alignItems: 'center',
     gap: 8,
@@ -697,8 +694,8 @@ const styles = StyleSheet.create({
   sequenceItem: {
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
   },
   bankContainer: {
