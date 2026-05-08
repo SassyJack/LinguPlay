@@ -11,7 +11,7 @@ import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
-import { HapticService, speechService } from '@/services';
+import { HapticService, audioService, speechService } from '@/services';
 import { GameSyncService } from '@/api';
 import { useGameStore, useUserStore } from '@/store';
 

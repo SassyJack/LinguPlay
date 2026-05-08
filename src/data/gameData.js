@@ -324,7 +324,7 @@ export const components = [
             audioPrompt: 'Oración con error: Los niña juega.',
             prompt: '¿Cuál es la corrección adecuada?',
             options: ['La niña juegan', 'Los niños juegan', 'Los nino juega'],
-            correctAnswer: 'Los ninos juegan',
+            correctAnswer: 'Los niños juegan',
             supportText: 'Revisa si sujeto y verbo combinan correctamente.',
             reward: 25,
           },

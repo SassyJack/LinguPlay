@@ -87,6 +87,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           accessible={true}
           accessibilityLabel={`Bienvenido ${displayName}${isPremium ? ' Premium' : ''}`}
         >
+          <Image
+            source={require('../../assets/activity-images/Fondo.jpeg')}
+            style={styles.backgroundImage}
+          />
           <View style={styles.logoContainer}>
             <Image source={require('../../assets/logo.jpg')} style={styles.logo} />
           </View>
@@ -253,11 +257,23 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 24,
     paddingHorizontal: 16,
+    overflow: 'hidden',
     borderBottomWidth: 3,
     borderBottomColor: '#FFD93D',
     backgroundColor: '#FFF0DB',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    opacity: 0.3,
   },
   logoContainer: {
     alignItems: 'center',
