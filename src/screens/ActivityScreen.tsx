@@ -11,15 +11,35 @@ import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
-import { HapticService, audioService, speechService } from '@/services';
+import { HapticService, speechService } from '@/services';
 import { GameSyncService } from '@/api';
 import { useGameStore, useUserStore } from '@/store';
 
 const ACTIVITY_IMAGES: Record<string, number> = {
-  fonologico: require('../../assets/activity-images/fonologico.png'),
-  semantico: require('../../assets/activity-images/semantico.png'),
-  sintactico: require('../../assets/activity-images/sintactico.png'),
-  pragmatico: require('../../assets/activity-images/pragmatico.png'),
+  'fonologico-7-caza-sonidos': require('../../assets/activity-images/fonologico-7-caza-sonidos.png'),
+  'fonologico-7-suena-igual': require('../../assets/activity-images/fonologico-7-suena-igual.png'),
+  'fonologico-8-rompecabezas': require('../../assets/activity-images/fonologico-8-rompecabezas.png'),
+  'fonologico-8-rimas': require('../../assets/activity-images/fonologico-8-rimas.png'),
+  'fonologico-9-segmenta': require('../../assets/activity-images/fonologico-9-segmenta.png'),
+  'fonologico-9-intruso': require('../../assets/activity-images/fonologico-9-intruso.png'),
+  'semantico-7-empareja': require('../../assets/activity-images/semantico-7-empareja.png'),
+  'semantico-7-que-es': require('../../assets/activity-images/semantico-7-que-es.png'),
+  'semantico-8-categorias': require('../../assets/activity-images/semantico-8-categorias.png'),
+  'semantico-8-intrusa': require('../../assets/activity-images/semantico-8-intrusa.png'),
+  'semantico-9-sinonimos': require('../../assets/activity-images/semantico-9-sinonimos.png'),
+  'semantico-9-contexto': require('../../assets/activity-images/semantico-9-contexto.png'),
+  'sintactico-7-ordena': require('../../assets/activity-images/sintactico-7-ordena.png'),
+  'sintactico-7-completa': require('../../assets/activity-images/sintactico-7-completa.png'),
+  'sintactico-8-correctas': require('../../assets/activity-images/sintactico-8-correctas.png'),
+  'sintactico-8-historia': require('../../assets/activity-images/sintactico-8-historia.png'),
+  'sintactico-9-error': require('../../assets/activity-images/sintactico-9-error.png'),
+  'sintactico-9-construccion': require('../../assets/activity-images/sintactico-9-construccion.png'),
+  'pragmatico-7-que-dices': require('../../assets/activity-images/pragmatico-7-que-dices.png'),
+  'pragmatico-7-turnos': require('../../assets/activity-images/pragmatico-7-turnos.png'),
+  'pragmatico-8-situaciones': require('../../assets/activity-images/pragmatico-8-situaciones.png'),
+  'pragmatico-8-emociones': require('../../assets/activity-images/pragmatico-8-emociones.png'),
+  'pragmatico-9-responde': require('../../assets/activity-images/pragmatico-9-responde.png'),
+  'pragmatico-9-dialogo': require('../../assets/activity-images/pragmatico-9-dialogo.png'),
 };
 
 interface ActivityScreenProps {
@@ -57,8 +77,8 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const currentComponentId = componentId || selectedComponentId;
   const currentLevelId = levelId || selectedLevelId;
   const currentActivityId = activityId || selectedActivityId;
-  const currentActivityImage = currentComponentId
-    ? ACTIVITY_IMAGES[currentComponentId]
+  const currentActivityImage = currentActivityId
+    ? (ACTIVITY_IMAGES[currentActivityId] || null)
     : null;
 
   const activity = useMemo(() => {
@@ -634,9 +654,9 @@ const styles = StyleSheet.create({
   },
   activityImage: {
     width: '100%',
-    height: 220,
-    borderRadius: 20,
-    marginBottom: 16,
+    height: 280,
+    borderRadius: 24,
+    marginBottom: 20,
   },
   audioPromptBlock: {
     flexDirection: 'row',
