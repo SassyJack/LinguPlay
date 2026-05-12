@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  TextInput,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -16,9 +17,10 @@ import { wompiService } from '@/services';
 const PAYMENT_METHODS = [
   { id: 'nequi', name: 'Nequi', icon: '📱', color: '#E91E63', wompiType: 'NEQUI' },
   { id: 'daviplata', name: 'Daviplata', icon: '💳', color: '#ED1C24', wompiType: 'DAVIPLATA' },
-  { id: 'bancolombia', name: 'Bancolombia', icon: '🏦', color: '#003B71', wompiType: 'BANCOLOMBIA' },
-  { id: 'breve', name: 'Llave Bre-B', icon: '🔑', color: '#00A650', wompiType: 'BRE_B' },
+  { id: 'bancolombia', name: 'Bancolombia', icon: '🏦', color: '#003B71', wompiType: 'BANCOLOMBIA_TRANSFER' },
 ];
+
+const DOCUMENT_TYPES = ['CC', 'CE', 'NIT'];
 
 const PLANS = [
   {
@@ -59,6 +61,9 @@ export const SubscriptionScreen: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>('annual');
   const [selectedMethod, setSelectedMethod] = useState<string>('nequi');
   const [showConfirm, setShowConfirm] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [docType, setDocType] = useState('CC');
+  const [docNumber, setDocNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'approved' | 'declined'>('idle');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -136,6 +141,24 @@ export const SubscriptionScreen: React.FC = () => {
     const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
     if (!plan || !method || !user?.email) return;
 
+    if (method.id === 'nequi' && phoneNumber.length < 10) {
+      showToast('Ingresa tu número de Nequi (10 dígitos)', 'warning');
+      setLoading(false);
+      return;
+    }
+    if (method.id === 'daviplata') {
+      if (phoneNumber.length < 10) {
+        showToast('Ingresa tu número de Daviplata (10 dígitos)', 'warning');
+        setLoading(false);
+        return;
+      }
+      if (docNumber.length < 5) {
+        showToast('Ingresa tu número de documento', 'warning');
+        setLoading(false);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const reference = `linguaplay-${plan.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -144,6 +167,11 @@ export const SubscriptionScreen: React.FC = () => {
         customerEmail: user.email,
         customerFullname: user.displayName || user.email,
         paymentMethodType: method.wompiType as any,
+        phoneNumber: phoneNumber || undefined,
+        userLegalId: method.id === 'daviplata' ? docNumber : undefined,
+        userLegalIdType: method.id === 'daviplata' ? docType : undefined,
+        userType: method.id === 'bancolombia' ? 'PERSON' : undefined,
+        paymentDescription: `LinguaPlay ${plan.name} - ${user.email}`,
         reference,
       });
 
@@ -157,6 +185,7 @@ export const SubscriptionScreen: React.FC = () => {
         showToast('Redirigiendo a la pasarela de pago...', 'info');
       }
     } catch (error: any) {
+      console.error('Wompi error:', error);
       showToast(error.message || 'Error al procesar el pago', 'error');
       setPaymentStatus('idle');
     } finally {
@@ -230,6 +259,60 @@ export const SubscriptionScreen: React.FC = () => {
               Serás redirigido a la pasarela de pagos para completar la transacción.
             </Text>
           </View>
+
+          {(method?.id === 'nequi' || method?.id === 'daviplata') && (
+            <View style={[styles.confirmCard, { backgroundColor: theme.colors.surface, marginTop: 12, width: '100%' }]}>
+              <Text variant="h3">📱 Número de celular</Text>
+              <TextInput
+                style={[styles.phoneInput, { borderColor: theme.colors.primary, color: theme.colors.onBackground }]}
+                placeholder="3001234567"
+                placeholderTextColor="#999"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+              <Text variant="caption" color={theme.colors.onSurface} style={{ marginTop: 4 }}>
+                Ingresa el número asociado a tu cuenta {method?.name}
+              </Text>
+            </View>
+          )}
+
+          {method?.id === 'daviplata' && (
+            <View style={[styles.confirmCard, { backgroundColor: theme.colors.surface, marginTop: 12, width: '100%' }]}>
+              <Text variant="h3">🆔 Documento de identidad</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, width: '100%' }}>
+                {DOCUMENT_TYPES.map(dt => (
+                  <TouchableOpacity
+                    key={dt}
+                    style={[
+                      styles.docTypeBtn,
+                      {
+                        backgroundColor: docType === dt ? theme.colors.primary : theme.colors.surface,
+                        borderColor: theme.colors.primary,
+                      },
+                    ]}
+                    onPress={() => setDocType(dt)}
+                  >
+                    <Text
+                      variant="caption"
+                      color={docType === dt ? '#FFF' : theme.colors.primary}
+                    >
+                      {dt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                style={[styles.phoneInput, { borderColor: theme.colors.primary, color: theme.colors.onBackground, marginTop: 8 }]}
+                placeholder="Número de documento"
+                placeholderTextColor="#999"
+                value={docNumber}
+                onChangeText={setDocNumber}
+                keyboardType="number-pad"
+              />
+            </View>
+          )}
 
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 24 }}>
             <Button title="Cancelar" variant="outline" onPress={() => { setShowConfirm(false); setPaymentStatus('idle'); }} disabled={loading} />
@@ -402,6 +485,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     marginTop: 24,
+  },
+  phoneInput: {
+    width: '100%',
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 18,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  docTypeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
   },
 });
 

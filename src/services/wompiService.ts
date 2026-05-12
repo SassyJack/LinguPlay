@@ -6,7 +6,12 @@ export interface CreateTransactionParams {
   currency?: string;
   customerEmail: string;
   customerFullname: string;
-  paymentMethodType: 'NEQUI' | 'BANCOLOMBIA' | 'DAVIPLATA' | 'BRE_B';
+  paymentMethodType: 'NEQUI' | 'BANCOLOMBIA_TRANSFER' | 'DAVIPLATA';
+  phoneNumber?: string;
+  userLegalId?: string;
+  userLegalIdType?: string;
+  userType?: string;
+  paymentDescription?: string;
   reference: string;
 }
 
@@ -40,13 +45,20 @@ async function createTransaction(
       customer_email: params.customerEmail,
       customer_fullname: params.customerFullname,
       payment_method_type: params.paymentMethodType,
+      phone_number: params.phoneNumber,
+      user_legal_id: params.userLegalId,
+      user_legal_id_type: params.userLegalIdType,
+      user_type: params.userType,
+      payment_description: params.paymentDescription,
       reference: params.reference,
     }),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Error al crear el pago');
+    console.warn('Wompi proxy error:', JSON.stringify(error));
+    const msg = typeof error.error === 'string' ? error.error : error.error?.message;
+    throw new Error(msg || 'Error al crear el pago');
   }
 
   return response.json();

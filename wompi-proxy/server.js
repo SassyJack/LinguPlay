@@ -29,6 +29,11 @@ app.post('/create-transaction', async (req, res) => {
       customer_email,
       customer_fullname,
       payment_method_type,
+      phone_number,
+      user_legal_id,
+      user_legal_id_type,
+      user_type,
+      payment_description,
       reference,
     } = req.body;
 
@@ -38,16 +43,41 @@ app.post('/create-transaction', async (req, res) => {
 
     const signature = generateSignature(reference, amount_in_cents, currency);
 
+    const payment_method = { type: payment_method_type };
+
+    switch (payment_method_type) {
+      case 'NEQUI':
+        if (phone_number) payment_method.phone_number = phone_number;
+        break;
+      case 'DAVIPLATA':
+        if (phone_number) payment_method.phone_number = phone_number;
+        if (user_legal_id) payment_method.user_legal_id = user_legal_id;
+        if (user_legal_id_type) payment_method.user_legal_id_type = user_legal_id_type;
+        if (payment_description) payment_method.payment_description = payment_description;
+        break;
+      case 'BANCOLOMBIA_TRANSFER':
+        payment_method.user_type = user_type || 'PERSON';
+        payment_method.payment_description = payment_description || 'Pago LinguaPlay';
+        if (process.env.WOMPI_API_URL?.includes('sandbox')) {
+          payment_method.sandbox_status = 'APPROVED';
+        }
+        break;
+    }
+
     const payload = {
       amount_in_cents,
       currency,
       reference,
       customer_email,
-      customer_fullname: customer_fullname || '',
-      payment_method: { type: payment_method_type },
+      payment_method,
       redirect_url: `${process.env.FRONTEND_URL || 'http://localhost:8081'}?payment_callback=1`,
       signature,
     };
+    if (customer_fullname) {
+      payload.customer_fullname = customer_fullname;
+    }
+
+    console.log('Wompi request:', JSON.stringify({ ...payload, signature: '[REDACTED]' }, null, 2));
 
     const response = await fetch(`${WOMPI_API}/transactions`, {
       method: 'POST',
@@ -59,9 +89,13 @@ app.post('/create-transaction', async (req, res) => {
     });
 
     const data = await response.json();
+    console.log('Wompi response status:', response.status, JSON.stringify(data, null, 2));
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data });
+      const wompiError = data?.error?.type
+        ? `${data.error.type}: ${data.error.messages?.join?.(', ') || JSON.stringify(data.error)}`
+        : JSON.stringify(data);
+      return res.status(response.status).json({ error: wompiError });
     }
 
     res.json({
