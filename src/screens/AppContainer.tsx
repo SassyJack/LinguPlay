@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { Text } from '../components';
 import { useUIStore } from '../store/uiStore';
 import { useGameStore } from '../store/gameStore';
@@ -14,6 +14,7 @@ import {
   LoginScreen,
   SignupScreen,
   AdminDashboardScreen,
+  SubscriptionScreen,
 } from './index';
 import { useTheme } from '../theme';
 import { GameSyncService, useConnectivity } from '../api';
@@ -75,6 +76,15 @@ export const AppContainer: React.FC = () => {
     };
 
     initializeApp();
+
+    // Payment callback handler: redirect to subscription if Wompi redirects here
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment_callback') === '1') {
+        const navigate = useUIStore.getState().navigateTo;
+        navigate('subscription');
+      }
+    }
 
     return () => {
       audioService.cleanup();
@@ -194,6 +204,8 @@ export const AppContainer: React.FC = () => {
         );
       case 'results':
         return <ResultsScreen testID="results-screen" />;
+      case 'subscription':
+        return <SubscriptionScreen />;
       default:
         return <HomeScreen testID="home-screen" />;
     }

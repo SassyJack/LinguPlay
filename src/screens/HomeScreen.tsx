@@ -109,8 +109,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 testID="user-name"
               >
                 {displayName}
-                {isPremium && ' 👑'}
               </Text>
+              <View
+                style={[
+                  styles.premiumBadge,
+                  {
+                    backgroundColor: isPremium ? '#FFF8E1' : '#F5F5F5',
+                    borderColor: isPremium ? '#FFD700' : '#BDBDBD',
+                  },
+                ]}
+              >
+                <Text
+                  variant="caption"
+                  color={isPremium ? '#B8860B' : '#757575'}
+                >
+                  {isPremium ? '👑 Premium' : '🔹 Gratuito'}
+                </Text>
+              </View>
             </View>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
               <Text variant="caption" color={theme.colors.error}>Cerrar Sesión</Text>
@@ -247,6 +262,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 : `💡 Intentos hoy: ${attemptsRemaining}`}
             </Text>
           </View>
+          {!isPremium && (
+            <Button
+              title="⭐ Hazte Premium"
+              onPress={() => navigateTo('subscription')}
+              variant="secondary"
+              style={{ marginTop: 12, borderRadius: 20 }}
+              testID="premium-button"
+            />
+          )}
         </View>
       </ScrollView>
     </Container>
@@ -331,6 +355,14 @@ const styles = StyleSheet.create({
   },
   attemptsBanner: {
     padding: 8,
+  },
+  premiumBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1.5,
   },
 });
 

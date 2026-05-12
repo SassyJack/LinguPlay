@@ -381,12 +381,17 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               backgroundColor: theme.colors.surface,
               borderLeftWidth: 6,
               borderLeftColor: theme.colors.primary,
+              overflow: 'hidden',
             },
           ]}
           testID="prompt-card"
           accessible={true}
           accessibilityLabel="Pregunta"
         >
+          <Image
+            source={require('../../assets/activity-images/Fondo.jpeg')}
+            style={styles.cardBackground}
+          />
           {currentActivityImage ? (
             <Image
               source={currentActivityImage}
@@ -651,6 +656,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
+  },
+  cardBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    opacity: 0.15,
   },
   activityImage: {
     width: '100%',
