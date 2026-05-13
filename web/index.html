@@ -365,6 +365,37 @@
     .footer a { color: #FFD93D; font-weight: 700; }
     .footer a:hover { text-decoration: underline; }
 
+    /* Forum */
+    .forum-posts { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    .forum-post {
+      display: flex; gap: 16px; background: #fff;
+      padding: 20px; border-radius: 16px; border: 2px solid #F0F0F0;
+      transition: all 0.3s;
+    }
+    .forum-post:hover { border-color: #4A90D9; transform: translateX(4px); }
+    .forum-avatar { font-size: 2.5rem; line-height: 1; }
+    .forum-body { flex: 1; }
+    .forum-author { font-weight: 800; font-size: 0.95rem; color: #2C3E50; margin-bottom: 6px; }
+    .forum-date { font-weight: 400; color: #BDBDBD; font-size: 0.8rem; }
+    .forum-body p { font-size: 0.95rem; color: #34495E; line-height: 1.5; }
+    .forum-reactions { margin-top: 8px; font-size: 0.85rem; color: #7F8C8D; }
+    .forum-form {
+      background: #fff; padding: 28px; border-radius: 20px;
+      border: 2px solid #FFD93D; text-align: center;
+    }
+    .forum-textarea {
+      width: 100%; min-height: 100px; padding: 14px;
+      border: 2px solid #E0E0E0; border-radius: 12px;
+      font-family: 'Nunito', sans-serif; font-size: 0.95rem;
+      color: #2C3E50; resize: vertical; margin-bottom: 16px;
+      transition: border-color 0.3s; box-sizing: border-box;
+    }
+    .forum-textarea:focus { outline: none; border-color: #4A90D9; }
+    .forum-success {
+      display: none; margin-top: 12px; color: #50C878;
+      font-weight: 700; font-size: 0.95rem;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(255,245,230,0.98); flex-direction: column; padding: 20px 24px; border-bottom: 3px solid #FFD93D; }
@@ -400,8 +431,9 @@
       <a href="#servicios">Servicios</a>
       <a href="#acerca">Acerca de</a>
       <a href="#componentes">Componentes</a>
+      <a href="#foro">Foro</a>
       <a href="#contacto">Contacto</a>
-      <a href="./" class="nav-cta">Ir a la App</a>
+      <a href="https://linguplay-test.onrender.com/" class="nav-cta">Ir a la App</a>
     </div>
   </nav>
 
@@ -579,6 +611,49 @@
     </div>
   </section>
 
+  <!-- Forum -->
+  <section class="section" id="foro" style="background:#FFF5E6; max-width:none; padding:80px 24px;">
+    <div style="max-width:800px; margin:0 auto;">
+      <h2 class="section-title">Foro de la Comunidad</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Comparte tu experiencia con LinguaPlay, resuelve dudas y conecta con otros usuarios.</p>
+
+      <div class="forum-posts">
+        <div class="forum-post">
+          <div class="forum-avatar">👧</div>
+          <div class="forum-body">
+            <div class="forum-author">María G. <span class="forum-date">hace 2 d&iacute;as</span></div>
+            <p>Mi hija de 7 a&ntilde;os ha mejorado mucho su pronunciaci&oacute;n con las actividades fonol&oacute;gicas. &iexcl;Le encanta!</p>
+            <div class="forum-reactions">❤️ 12 &nbsp; 💬 3</div>
+          </div>
+        </div>
+        <div class="forum-post">
+          <div class="forum-avatar">👦</div>
+          <div class="forum-body">
+            <div class="forum-author">Carlos R. <span class="forum-date">hace 5 d&iacute;as</span></div>
+            <p>&iquest;Alguien sabe cu&aacute;ndo agregar&aacute;n m&aacute;s niveles para el componente sem&aacute;ntico? Mi hijo ya complet&oacute; todos.</p>
+            <div class="forum-reactions">❤️ 8 &nbsp; 💬 6</div>
+          </div>
+        </div>
+        <div class="forum-post">
+          <div class="forum-avatar">👩</div>
+          <div class="forum-body">
+            <div class="forum-author">Ana L. <span class="forum-date">hace 1 semana</span></div>
+            <p>Excelente herramienta para terapeutas del lenguaje. Lo uso en mis sesiones y los progresos son notables. &iexcl;Muy recomendado!</p>
+            <div class="forum-reactions">❤️ 24 &nbsp; 💬 9</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="forum-form">
+        <h3 style="font-size:1.2rem; font-weight:800; margin-bottom:12px; color:#2C3E50;">Comparte tu opini&oacute;n</h3>
+        <textarea id="forumInput" class="forum-textarea" placeholder="Escribe tu mensaje... &iquest;Qu&eacute; te parece LinguaPlay? &iquest;Sugerencias?"></textarea>
+        <button onclick="submitForum()" class="btn btn-primary">Publicar opini&oacute;n</button>
+        <p id="forumSuccess" class="forum-success">¡Gracias por compartir tu opini&oacute;n! Tu mensaje ha sido enviado.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Floating decorations -->
   <div class="float-container">
     <div class="float-item">🧩</div>
@@ -627,6 +702,16 @@
         document.getElementById('navLinks').classList.remove('open');
       });
     });
+    function submitForum() {
+      var input = document.getElementById('forumInput');
+      var msg = input.value.trim();
+      if (!msg) { alert('Por favor escribe un mensaje.'); return; }
+      document.getElementById('forumSuccess').style.display = 'block';
+      input.value = '';
+      setTimeout(function() {
+        document.getElementById('forumSuccess').style.display = 'none';
+      }, 4000);
+    }
   </script>
 </body>
 </html>
