@@ -60,7 +60,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   }, [navigateTo]);
 
   const handleOpenPortfolio = useCallback(() => {
-    Linking.openURL('/portafolio.html');
+    Linking.openURL('https://lingu-play.vercel.app/');
   }, []);
 
   // Memoized computed values
