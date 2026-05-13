@@ -327,6 +327,10 @@ export const SubscriptionScreen: React.FC = () => {
     <Container style={{ backgroundColor: theme.colors.background }} testID="subscription-screen">
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
+          <Image
+            source={require('../../assets/activity-images/Fondo.jpeg')}
+            style={styles.backgroundImage}
+          />
           <Image source={require('../../assets/logo.jpg')} style={styles.logo} />
           <Text variant="h1" color={theme.colors.primary}>Premium</Text>
           <Text variant="body" color={theme.colors.onBackground}>
@@ -418,12 +422,32 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 24,
+    paddingVertical: 24,
+    overflow: 'hidden',
+    borderBottomWidth: 3,
+    borderBottomColor: '#FFD93D',
+    backgroundColor: '#FFF0DB',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    opacity: 0.3,
   },
   logo: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginBottom: 12,
+    borderWidth: 3,
+    borderColor: '#FFD93D',
   },
   plansContainer: {
     flexDirection: 'row',

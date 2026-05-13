@@ -21,6 +21,16 @@ function generateSignature(reference, amountInCents, currency) {
     .digest('hex');
 }
 
+async function getAcceptanceTokens() {
+  const publicKey = process.env.WOMPI_PUBLIC_KEY;
+  const response = await fetch(`${WOMPI_API}/merchants/${publicKey}`);
+  const data = await response.json();
+  return {
+    acceptance_token: data.data?.presigned_acceptance?.acceptance_token,
+    accept_personal_auth: data.data?.presigned_personal_data_auth?.acceptance_token,
+  };
+}
+
 app.post('/create-transaction', async (req, res) => {
   try {
     const {
@@ -42,6 +52,8 @@ app.post('/create-transaction', async (req, res) => {
     }
 
     const signature = generateSignature(reference, amount_in_cents, currency);
+
+    const tokens = await getAcceptanceTokens();
 
     const payment_method = { type: payment_method_type };
 
@@ -72,9 +84,13 @@ app.post('/create-transaction', async (req, res) => {
       payment_method,
       redirect_url: `${process.env.FRONTEND_URL || 'http://localhost:8081'}?payment_callback=1`,
       signature,
+      acceptance_token: tokens.acceptance_token,
     };
     if (customer_fullname) {
       payload.customer_fullname = customer_fullname;
+    }
+    if (tokens.accept_personal_auth) {
+      payload.accept_personal_auth = tokens.accept_personal_auth;
     }
 
     console.log('Wompi request:', JSON.stringify({ ...payload, signature: '[REDACTED]' }, null, 2));

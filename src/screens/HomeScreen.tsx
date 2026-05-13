@@ -6,6 +6,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Image,
+  Linking,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
@@ -57,6 +58,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   const handleViewProgress = useCallback(() => {
     navigateTo('results');
   }, [navigateTo]);
+
+  const handleOpenPortfolio = useCallback(() => {
+    Linking.openURL('/portafolio.html');
+  }, []);
 
   // Memoized computed values
   const completionPercentageText = useMemo(
@@ -272,6 +277,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
             />
           )}
         </View>
+
+        {/* Portfolio Link */}
+        <TouchableOpacity
+          onPress={handleOpenPortfolio}
+          style={styles.portfolioLink}
+          testID="portfolio-link"
+        >
+          <Text variant="caption" color="#7F8C8D">
+            Conoce m&aacute;s sobre LinguaPlay
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </Container>
   );
@@ -363,6 +379,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1.5,
+  },
+  portfolioLink: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    marginHorizontal: 16,
   },
 });
 
