@@ -9,7 +9,7 @@ import { Button, Text, Container } from '@/components';
 import { useGame, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
-import { useFadeInAnimation, useSlideInAnimation, audioService } from '@/services';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * ResultsScreen - Analytics dashboard showing overall and per-component progress
@@ -33,9 +33,6 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   useEffect(() => {
     startFadeIn();
     startSlideIn();
-    
-    // Play results background music
-    audioService.playBackgroundMusic('result');
   }, [startFadeIn, startSlideIn]);
 
   // Memoized callback
@@ -265,7 +262,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             key={index}
             style={[
               styles.componentProgressCard,
-              { backgroundColor: stats.accent + '10' || '#F3F4F6' },
+              { backgroundColor: stats.accent + '25' || '#F3F4F6' },
             ]}
             testID={`component-progress-${index}`}
             accessible={true}

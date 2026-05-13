@@ -5,12 +5,14 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Image,
+  Linking,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Button, Text, Container } from '@/components';
 import { useGame, useUser, useUI } from '@/hooks';
 import { useTheme } from '@/theme';
-import { useFadeInAnimation, useSlideInAnimation, audioService } from '@/services';
+import { useFadeInAnimation, useSlideInAnimation } from '@/services';
 
 /**
  * HomeScreen - Main welcome hub showing personalized greeting,
@@ -47,9 +49,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   useEffect(() => {
     startFadeIn();
     setTimeout(() => startSlideIn(), 150);
-    
-    // Play menu background music
-    audioService.playBackgroundMusic('menu');
   }, []);
 
   const handleStartActivity = useCallback(() => {
@@ -59,6 +58,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
   const handleViewProgress = useCallback(() => {
     navigateTo('results');
   }, [navigateTo]);
+
+  const handleOpenPortfolio = useCallback(() => {
+    Linking.openURL('/portafolio.html');
+  }, []);
 
   // Memoized computed values
   const completionPercentageText = useMemo(
@@ -89,6 +92,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           accessible={true}
           accessibilityLabel={`Bienvenido ${displayName}${isPremium ? ' Premium' : ''}`}
         >
+          <Image
+            source={require('../../assets/activity-images/Fondo.jpeg')}
+            style={styles.backgroundImage}
+          />
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/logo.jpg')} style={styles.logo} />
+          </View>
           <View style={styles.headerTop}>
             <View>
               <Text
@@ -96,7 +106,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 color={theme.colors.primary}
                 testID="welcome-text"
               >
-                ¡Bienvenido a LinguaPlay!
+                ¡Hola! 🎮 Bienvenido a LinguaPlay
               </Text>
               <Text
                 variant="body"
@@ -104,8 +114,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 testID="user-name"
               >
                 {displayName}
-                {isPremium && ' 👑'}
               </Text>
+              <View
+                style={[
+                  styles.premiumBadge,
+                  {
+                    backgroundColor: isPremium ? '#FFF8E1' : '#F5F5F5',
+                    borderColor: isPremium ? '#FFD700' : '#BDBDBD',
+                  },
+                ]}
+              >
+                <Text
+                  variant="caption"
+                  color={isPremium ? '#B8860B' : '#757575'}
+                >
+                  {isPremium ? '👑 Premium' : '🔹 Gratuito'}
+                </Text>
+              </View>
             </View>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
               <Text variant="caption" color={theme.colors.error}>Cerrar Sesión</Text>
@@ -132,14 +157,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           <View
             style={[
               styles.statCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: '#E3F2FD', borderColor: '#64B5F6' },
             ]}
             testID="score-card"
             accessible={true}
             accessibilityLabel={`Puntos: ${score}`}
           >
             <Text variant="h3" color={theme.colors.primary}>
-              Puntos
+              ⭐ Puntos
             </Text>
             <Text variant="h2" color={theme.colors.primary} testID="score-value">
               {score}
@@ -150,14 +175,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           <View
             style={[
               styles.statCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: '#FFF8E1', borderColor: '#FFD54F' },
             ]}
             testID="stars-card"
             accessible={true}
             accessibilityLabel={`Estrellas: ${stars}`}
           >
             <Text variant="h3" color={theme.colors.accent}>
-              Estrellas
+              🌟 Estrellas
             </Text>
             <Text variant="h2" color={theme.colors.accent} testID="stars-value">
               {stars}⭐
@@ -168,7 +193,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           <View
             style={[
               styles.statCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: '#E8F5E9', borderColor: '#81C784' },
             ]}
             testID="progress-card"
             accessible={true}
@@ -216,15 +241,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
           accessibilityLabel="Información del sistema"
         >
           <Text variant="h3" color={theme.colors.onBackground}>
-            📚 Cómo Funciona
+            📚 ¿Cómo se juega?
           </Text>
           <Text
             variant="caption"
             color={theme.colors.onSurface}
             style={{ marginTop: 8 }}
           >
-            Selecciona un componente de lenguaje, completa los niveles y gana
-            puntos. Acumula estrellas para desbloquear logros especiales.
+            Elige un componente del lenguaje, completa los niveles y gana
+            puntos. ¡Acumula estrellas para desbloquear logros especiales!
           </Text>
           <View
             style={styles.attemptsBanner}
@@ -242,7 +267,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 : `💡 Intentos hoy: ${attemptsRemaining}`}
             </Text>
           </View>
+          {!isPremium && (
+            <Button
+              title="⭐ Hazte Premium"
+              onPress={() => navigateTo('subscription')}
+              variant="secondary"
+              style={{ marginTop: 12, borderRadius: 20 }}
+              testID="premium-button"
+            />
+          )}
         </View>
+
+        {/* Portfolio Link */}
+        <TouchableOpacity
+          onPress={handleOpenPortfolio}
+          style={styles.portfolioLink}
+          testID="portfolio-link"
+        >
+          <Text variant="caption" color="#7F8C8D">
+            Conoce m&aacute;s sobre LinguaPlay
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </Container>
   );
@@ -252,8 +297,35 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 24,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    overflow: 'hidden',
+    borderBottomWidth: 3,
+    borderBottomColor: '#FFD93D',
+    backgroundColor: '#FFF0DB',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    opacity: 0.3,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    resizeMode: 'cover',
+    borderWidth: 3,
+    borderColor: '#FFD93D',
   },
   headerTop: {
     flexDirection: 'row',
@@ -271,15 +343,17 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
     minHeight: 100,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   actionContainer: {
     paddingHorizontal: 16,
@@ -289,12 +363,30 @@ const styles = StyleSheet.create({
   infoSection: {
     marginHorizontal: 16,
     marginBottom: 32,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    padding: 20,
+    backgroundColor: '#FFF0DB',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FFD93D',
   },
   attemptsBanner: {
     padding: 8,
+  },
+  premiumBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  portfolioLink: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    marginHorizontal: 16,
   },
 });
 

@@ -8,7 +8,7 @@ import { ThemeProvider } from './src/theme';
  */
 export default function App() {
   return (
-    <ThemeProvider defaultMode="system">
+    <ThemeProvider defaultMode="light">
       <AppContainer />
     </ThemeProvider>
   );

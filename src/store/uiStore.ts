@@ -13,7 +13,8 @@ export type ScreenType =
   | 'results'
   | 'login'
   | 'signup'
-  | 'admin_dashboard';
+  | 'admin_dashboard'
+  | 'subscription';
 
 export interface UIStoreState {
   // State
@@ -66,6 +67,12 @@ export const useUIStore = create<UIStoreState>(set => ({
         return { currentScreen: 'component' };
       }
       if (state.currentScreen === 'component') {
+        return { currentScreen: 'home' };
+      }
+      if (state.currentScreen === 'results') {
+        return { currentScreen: 'home' };
+      }
+      if (state.currentScreen === 'subscription') {
         return { currentScreen: 'home' };
       }
       return state;

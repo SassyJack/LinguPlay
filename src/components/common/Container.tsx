@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, SafeAreaView, ViewStyle } from 'react-native';
+import { useTheme } from '@/theme';
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ const Container: React.FC<ContainerProps> = ({
   style,
   testID,
 }) => {
+  const { theme } = useTheme();
   const customStyle = {
     paddingHorizontal: padding,
     paddingVertical: padding,
@@ -21,7 +23,7 @@ const Container: React.FC<ContainerProps> = ({
 
   return (
     <SafeAreaView
-      style={[styles.container, customStyle, style]}
+      style={[styles.container, { backgroundColor: theme.colors.background }, customStyle, style]}
       testID={testID}
     >
       {children}
@@ -32,7 +34,6 @@ const Container: React.FC<ContainerProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
 });
 

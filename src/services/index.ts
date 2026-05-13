@@ -28,3 +28,4 @@ export {
 } from './achievementService';
 
 export { notificationService } from './notificationService';
+export { wompiService } from './wompiService';

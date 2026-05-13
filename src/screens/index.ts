@@ -12,3 +12,4 @@ export { AppContainer } from './AppContainer';
 export { LoginScreen } from './LoginScreen';
 export { SignupScreen } from './SignupScreen';
 export { AdminDashboardScreen } from './AdminDashboardScreen';
+export { SubscriptionScreen } from './SubscriptionScreen';

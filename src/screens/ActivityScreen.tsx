@@ -16,10 +16,30 @@ import { GameSyncService } from '@/api';
 import { useGameStore, useUserStore } from '@/store';
 
 const ACTIVITY_IMAGES: Record<string, number> = {
-  fonologico: require('../../assets/activity-images/fonologico.png'),
-  semantico: require('../../assets/activity-images/semantico.png'),
-  sintactico: require('../../assets/activity-images/sintactico.png'),
-  pragmatico: require('../../assets/activity-images/pragmatico.png'),
+  'fonologico-7-caza-sonidos': require('../../assets/activity-images/fonologico-7-caza-sonidos.png'),
+  'fonologico-7-suena-igual': require('../../assets/activity-images/fonologico-7-suena-igual.png'),
+  'fonologico-8-rompecabezas': require('../../assets/activity-images/fonologico-8-rompecabezas.png'),
+  'fonologico-8-rimas': require('../../assets/activity-images/fonologico-8-rimas.png'),
+  'fonologico-9-segmenta': require('../../assets/activity-images/fonologico-9-segmenta.png'),
+  'fonologico-9-intruso': require('../../assets/activity-images/fonologico-9-intruso.png'),
+  'semantico-7-empareja': require('../../assets/activity-images/semantico-7-empareja.png'),
+  'semantico-7-que-es': require('../../assets/activity-images/semantico-7-que-es.png'),
+  'semantico-8-categorias': require('../../assets/activity-images/semantico-8-categorias.png'),
+  'semantico-8-intrusa': require('../../assets/activity-images/semantico-8-intrusa.png'),
+  'semantico-9-sinonimos': require('../../assets/activity-images/semantico-9-sinonimos.png'),
+  'semantico-9-contexto': require('../../assets/activity-images/semantico-9-contexto.png'),
+  'sintactico-7-ordena': require('../../assets/activity-images/sintactico-7-ordena.png'),
+  'sintactico-7-completa': require('../../assets/activity-images/sintactico-7-completa.png'),
+  'sintactico-8-correctas': require('../../assets/activity-images/sintactico-8-correctas.png'),
+  'sintactico-8-historia': require('../../assets/activity-images/sintactico-8-historia.png'),
+  'sintactico-9-error': require('../../assets/activity-images/sintactico-9-error.png'),
+  'sintactico-9-construccion': require('../../assets/activity-images/sintactico-9-construccion.png'),
+  'pragmatico-7-que-dices': require('../../assets/activity-images/pragmatico-7-que-dices.png'),
+  'pragmatico-7-turnos': require('../../assets/activity-images/pragmatico-7-turnos.png'),
+  'pragmatico-8-situaciones': require('../../assets/activity-images/pragmatico-8-situaciones.png'),
+  'pragmatico-8-emociones': require('../../assets/activity-images/pragmatico-8-emociones.png'),
+  'pragmatico-9-responde': require('../../assets/activity-images/pragmatico-9-responde.png'),
+  'pragmatico-9-dialogo': require('../../assets/activity-images/pragmatico-9-dialogo.png'),
 };
 
 interface ActivityScreenProps {
@@ -57,8 +77,8 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const currentComponentId = componentId || selectedComponentId;
   const currentLevelId = levelId || selectedLevelId;
   const currentActivityId = activityId || selectedActivityId;
-  const currentActivityImage = currentComponentId
-    ? ACTIVITY_IMAGES[currentComponentId]
+  const currentActivityImage = currentActivityId
+    ? (ACTIVITY_IMAGES[currentActivityId] || null)
     : null;
 
   const activity = useMemo(() => {
@@ -83,7 +103,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     setIsCorrect(false);
     setIsSubmitting(false);
     setError(null);
-    audioService.playBackgroundMusic('game');
 
     if (activity.audioPrompt) {
       speechService.speak(activity.audioPrompt);
@@ -115,7 +134,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       setSequenceAnswer(prev => [...prev, item]);
       setError(null);
       HapticService.tap();
-      audioService.playSoundEffect('tap');
       speechService.speak(item);
     }
   }, [activity, sequenceAnswer, showResult]);
@@ -126,7 +144,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     const removedItem = sequenceAnswer[index];
     setSequenceAnswer(prev => prev.filter((_, itemIndex) => itemIndex !== index));
     HapticService.tap();
-    audioService.playSoundEffect('tap');
     if (removedItem) {
       speechService.speak(removedItem);
     }
@@ -136,7 +153,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     setSelectedOption(option);
     setError(null);
     HapticService.tap();
-    audioService.playSoundEffect('tap');
     speechService.speak(option);
   }, []);
 
@@ -365,12 +381,17 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               backgroundColor: theme.colors.surface,
               borderLeftWidth: 6,
               borderLeftColor: theme.colors.primary,
+              overflow: 'hidden',
             },
           ]}
           testID="prompt-card"
           accessible={true}
           accessibilityLabel="Pregunta"
         >
+          <Image
+            source={require('../../assets/activity-images/Fondo.jpeg')}
+            style={styles.cardBackground}
+          />
           {currentActivityImage ? (
             <Image
               source={currentActivityImage}
@@ -636,11 +657,22 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
+  cardBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    opacity: 0.15,
+  },
   activityImage: {
     width: '100%',
-    height: 220,
-    borderRadius: 12,
-    marginBottom: 16,
+    height: 280,
+    borderRadius: 24,
+    marginBottom: 20,
   },
   audioPromptBlock: {
     flexDirection: 'row',
@@ -655,23 +687,23 @@ const styles = StyleSheet.create({
   listenButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   optionButton: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 18,
     marginBottom: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 60,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 4,
   },
   resultCard: {
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 24,
     marginVertical: 24,
     alignItems: 'center',
@@ -689,8 +721,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 12,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 16,
     minHeight: 60,
     alignItems: 'center',
     gap: 8,
@@ -698,8 +730,8 @@ const styles = StyleSheet.create({
   sequenceItem: {
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
   },
   bankContainer: {
