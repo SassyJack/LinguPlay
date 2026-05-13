@@ -70,7 +70,6 @@
       justify-content: center;
       padding: 120px 24px 80px;
       background: linear-gradient(135deg, #FFF5E6 0%, #FFE4B5 50%, #FFD93D 100%);
-      text-align: center;
       position: relative;
       overflow: hidden;
     }
@@ -94,7 +93,26 @@
       bottom: -80px;
       left: -80px;
     }
-    .hero-content { max-width: 800px; position: relative; z-index: 1; }
+    .hero-content {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      max-width: 1100px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-logo {
+      flex-shrink: 0;
+    }
+    .hero-logo img {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 5px solid #FFD93D;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+    .hero-text { flex: 1; text-align: left; }
     .hero-badge {
       display: inline-block;
       background: #4A90D9;
@@ -119,10 +137,8 @@
       color: #34495E;
       margin-bottom: 32px;
       max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
     }
-    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
     .btn {
       display: inline-block;
       padding: 14px 32px;
@@ -450,8 +466,12 @@
       .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(255,245,230,0.98); flex-direction: column; padding: 20px 24px; border-bottom: 3px solid #FFD93D; }
       .nav-links.open { display: flex; }
       .menu-toggle { display: flex; }
+      .hero-content { flex-direction: column; text-align: center; gap: 32px; }
+      .hero-logo img { width: 180px; height: 180px; }
+      .hero-text { text-align: center; }
       .hero h1 { font-size: 2.2rem; }
-      .hero p { font-size: 1rem; }
+      .hero p { font-size: 1rem; margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
       .about-content { grid-template-columns: 1fr; }
       .about-stats { grid-template-columns: repeat(3, 1fr); }
       .section-title { font-size: 1.8rem; }
@@ -491,13 +511,19 @@
   <!-- Hero -->
   <section class="hero" id="inicio">
     <div class="hero-content">
-      <div class="hero-badge">Aprende jugando</div>
-      <h1>Domina el lenguaje con <span>LinguaPlay</span></h1>
-      <p>Una plataforma educativa gamificada que transforma el aprendizaje de competencias ling&uuml;&iacute;sticas en una experiencia divertida y efectiva para ni&ntilde;os y j&oacute;venes.</p>
-      <div class="hero-actions">
-        <a href="./" class="btn btn-primary">Comenzar ahora</a>
-        <a href="#planes" class="btn btn-secondary">Ver planes</a>
+      <div class="hero-logo">
+        <img src="logo.jpg" alt="LinguaPlay" />
       </div>
+      <div class="hero-text">
+        <div class="hero-badge">Aprende jugando</div>
+        <h1>Domina el lenguaje con <span>LinguaPlay</span></h1>
+        <p>Una plataforma educativa gamificada que transforma el aprendizaje de competencias ling&uuml;&iacute;sticas en una experiencia divertida y efectiva para ni&ntilde;os y j&oacute;venes.</p>
+        <div class="hero-actions">
+          <a href="https://linguplay-test.onrender.com/" class="btn btn-primary">Comenzar ahora</a>
+          <a href="#planes" class="btn btn-secondary">Ver planes</a>
+        </div>
+      </div>
+    </div>
     </div>
   </section>
 
@@ -610,7 +636,7 @@
           sem&aacute;ntica, sintaxis y pragm&aacute;tica.
         </p>
         <p>
-          Creado por <strong>Santiago &Aacute;lvarez Londo&ntilde;o</strong>, LinguaPlay nace de la necesidad de
+          Creado por <strong>Estudiantes de octavo semestre de la universidad de Pamplona</strong>, LinguaPlay nace de la necesidad de
           herramientas accesibles y efectivas para la estimulaci&oacute;n del lenguaje en el entorno educativo colombiano.
         </p>
       </div>
