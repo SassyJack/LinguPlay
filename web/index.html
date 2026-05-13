@@ -1,15 +1,632 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <script src="https://code.responsivevoice.org/responsivevoice.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinguaPlay - Portafolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #FFF5E6;
+      color: #2C3E50;
+      line-height: 1.6;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 245, 230, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 3px solid #FFD93D;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .navbar .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: #4A90D9;
+    }
+    .navbar .logo img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FFD93D; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #2C3E50;
+      transition: color 0.2s;
+      padding: 6px 0;
+    }
+    .nav-links a:hover { color: #4A90D9; }
+    .nav-cta {
+      background: #FF8C42;
+      color: #fff !important;
+      padding: 8px 20px !important;
+      border-radius: 20px;
+      font-weight: 800;
+    }
+    .nav-cta:hover { background: #e67a30 !important; color: #fff !important; }
+    .menu-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+    .menu-toggle span { width: 26px; height: 3px; background: #2C3E50; border-radius: 3px; transition: 0.3s; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      background: linear-gradient(135deg, #FFF5E6 0%, #FFE4B5 50%, #FFD93D 100%);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: rgba(74, 144, 217, 0.08);
+      top: -100px;
+      right: -100px;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: rgba(80, 200, 120, 0.08);
+      bottom: -80px;
+      left: -80px;
+    }
+    .hero-content { max-width: 800px; position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-block;
+      background: #4A90D9;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: #2C3E50;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .hero h1 span { color: #4A90D9; }
+    .hero p {
+      font-size: 1.2rem;
+      color: #34495E;
+      margin-bottom: 32px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+    }
+    .btn-primary { background: #4A90D9; color: #fff; }
+    .btn-primary:hover { background: #3273C4; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74, 144, 217, 0.3); }
+    .btn-secondary { background: #fff; color: #4A90D9; border: 2px solid #4A90D9; }
+    .btn-secondary:hover { background: #4A90D9; color: #fff; transform: translateY(-2px); }
+    .btn-accent { background: #FF8C42; color: #fff; }
+    .btn-accent:hover { background: #e67a30; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 140, 66, 0.3); }
+
+    /* Sections */
+    .section {
+      padding: 80px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #2C3E50;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #7F8C8D;
+      margin-bottom: 48px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .section-divider {
+      width: 60px;
+      height: 4px;
+      background: #FFD93D;
+      border-radius: 2px;
+      margin: 0 auto 48px;
+    }
+
+    /* Plans */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .plan-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 36px 28px;
+      text-align: center;
+      border: 2px solid #E8E8E8;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .plan-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+    .plan-card.featured {
+      border-color: #FFD93D;
+      background: linear-gradient(180deg, #FFFDE7 0%, #fff 50%);
+    }
+    .plan-card.featured::before {
+      content: 'MÁS POPULAR';
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #FFD93D;
+      color: #2C3E50;
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 4px 16px;
+      border-radius: 10px;
+      letter-spacing: 1px;
+    }
+    .plan-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .plan-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+    .plan-price { font-size: 2.8rem; font-weight: 900; color: #4A90D9; margin-bottom: 4px; }
+    .plan-price span { font-size: 1rem; color: #7F8C8D; font-weight: 600; }
+    .plan-period { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; }
+    .plan-features { list-style: none; margin-bottom: 24px; text-align: left; }
+    .plan-features li {
+      padding: 8px 0;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .plan-features li:last-child { border-bottom: none; }
+    .plan-features li::before { content: '✓'; color: #50C878; font-weight: 900; }
+    .plan-features li.disabled { color: #BDBDBD; }
+    .plan-features li.disabled::before { content: '✗'; color: #E74C3C; }
+
+    /* Services */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+    .service-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      border: 2px solid #F0F0F0;
+      transition: all 0.3s;
+    }
+    .service-card:hover { border-color: #4A90D9; transform: translateY(-3px); box-shadow: 0 8px 30px rgba(74, 144, 217, 0.1); }
+    .service-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .service-name { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+    .service-desc { font-size: 0.9rem; color: #7F8C8D; }
+
+    /* About */
+    .about-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .about-text h3 { font-size: 1.6rem; font-weight: 800; margin-bottom: 16px; color: #4A90D9; }
+    .about-text p { margin-bottom: 16px; font-size: 1.05rem; color: #34495E; }
+    .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .stat-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
+      border: 2px solid #F0F0F0;
+    }
+    .stat-number { font-size: 2rem; font-weight: 900; color: #4A90D9; }
+    .stat-label { font-size: 0.85rem; color: #7F8C8D; font-weight: 600; }
+
+    /* Components */
+    .components-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .component-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      border: 2px solid #F0F0F0;
+      transition: all 0.3s;
+    }
+    .component-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
+    .component-card .emoji { font-size: 2rem; margin-bottom: 12px; }
+    .component-card h4 { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .component-card p { font-size: 0.9rem; color: #7F8C8D; }
+    .component-card.fonologico { border-left: 5px solid #4A90D9; }
+    .component-card.semantico { border-left: 5px solid #50C878; }
+    .component-card.sintactico { border-left: 5px solid #FF8C42; }
+    .component-card.pragmatico { border-left: 5px solid #E74C3C; }
+
+    /* Floating decorations */
+    .float-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .float-item {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.35;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) rotate(0deg) scale(0.5); opacity: 0; }
+      10% { opacity: 0.35; }
+      90% { opacity: 0.35; }
+      100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; }
+    }
+    .float-item:nth-child(1) { left: 5%; font-size: 1.8rem; animation-duration: 18s; animation-delay: 0s; }
+    .float-item:nth-child(2) { left: 12%; font-size: 2.5rem; animation-duration: 22s; animation-delay: 3s; }
+    .float-item:nth-child(3) { left: 20%; font-size: 1.5rem; animation-duration: 16s; animation-delay: 6s; }
+    .float-item:nth-child(4) { left: 28%; font-size: 2.2rem; animation-duration: 20s; animation-delay: 1s; }
+    .float-item:nth-child(5) { left: 35%; font-size: 1.6rem; animation-duration: 24s; animation-delay: 8s; }
+    .float-item:nth-child(6) { left: 42%; font-size: 2.8rem; animation-duration: 19s; animation-delay: 4s; }
+    .float-item:nth-child(7) { left: 50%; font-size: 1.4rem; animation-duration: 21s; animation-delay: 10s; }
+    .float-item:nth-child(8) { left: 58%; font-size: 2rem; animation-duration: 17s; animation-delay: 2s; }
+    .float-item:nth-child(9) { left: 65%; font-size: 2.6rem; animation-duration: 23s; animation-delay: 7s; }
+    .float-item:nth-child(10) { left: 72%; font-size: 1.7rem; animation-duration: 15s; animation-delay: 5s; }
+    .float-item:nth-child(11) { left: 78%; font-size: 2.3rem; animation-duration: 25s; animation-delay: 9s; }
+    .float-item:nth-child(12) { left: 85%; font-size: 1.9rem; animation-duration: 18s; animation-delay: 11s; }
+    .float-item:nth-child(13) { left: 92%; font-size: 2.1rem; animation-duration: 22s; animation-delay: 0s; }
+    .float-item:nth-child(14) { left: 8%; font-size: 2.4rem; animation-duration: 20s; animation-delay: 12s; }
+    .float-item:nth-child(15) { left: 48%; font-size: 1.3rem; animation-duration: 26s; animation-delay: 3s; }
+
+    /* Social / Contact */
+    .social-section {
+      background: linear-gradient(135deg, #4A90D9 0%, #3273C4 100%);
+      color: #fff;
+      text-align: center;
+      padding: 80px 24px;
+    }
+    .social-section .section-title { color: #fff; }
+    .social-section .section-subtitle { color: rgba(255,255,255,0.8); }
+    .social-section .section-divider { background: #FFD93D; }
+    .social-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-weight: 700;
+      transition: all 0.3s;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .social-link:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
+
+    /* Footer */
+    .footer {
+      background: #2C3E50;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 24px;
+      font-size: 0.9rem;
+    }
+    .footer a { color: #FFD93D; font-weight: 700; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(255,245,230,0.98); flex-direction: column; padding: 20px 24px; border-bottom: 3px solid #FFD93D; }
+      .nav-links.open { display: flex; }
+      .menu-toggle { display: flex; }
+      .hero h1 { font-size: 2.2rem; }
+      .hero p { font-size: 1rem; }
+      .about-content { grid-template-columns: 1fr; }
+      .about-stats { grid-template-columns: repeat(3, 1fr); }
+      .section-title { font-size: 1.8rem; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.8rem; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .about-stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="#" class="logo">
+      <img src="logo.jpg" alt="LinguaPlay" onerror="this.style.display='none'" />
+      LinguaPlay
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="#inicio">Inicio</a>
+      <a href="#planes">Planes</a>
+      <a href="#servicios">Servicios</a>
+      <a href="#acerca">Acerca de</a>
+      <a href="#componentes">Componentes</a>
+      <a href="#contacto">Contacto</a>
+      <a href="./" class="nav-cta">Ir a la App</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="inicio">
+    <div class="hero-content">
+      <div class="hero-badge">Aprende jugando</div>
+      <h1>Domina el lenguaje con <span>LinguaPlay</span></h1>
+      <p>Una plataforma educativa gamificada que transforma el aprendizaje de competencias ling&uuml;&iacute;sticas en una experiencia divertida y efectiva para ni&ntilde;os y j&oacute;venes.</p>
+      <div class="hero-actions">
+        <a href="./" class="btn btn-primary">Comenzar ahora</a>
+        <a href="#planes" class="btn btn-secondary">Ver planes</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plans -->
+  <section class="section" id="planes">
+    <h2 class="section-title">Planes</h2>
+    <div class="section-divider"></div>
+    <p class="section-subtitle">Elige el plan ideal para potenciar las habilidades lingu&uuml;&iacute;sticas.</p>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-icon">🎯</div>
+        <div class="plan-name">Gratuito</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">siempre</div>
+        <ul class="plan-features">
+          <li>5 intentos diarios</li>
+          <li>Acceso a todos los componentes</li>
+          <li>Progreso b&aacute;sico</li>
+          <li class="disabled">Intentos ilimitados</li>
+          <li class="disabled">Sin anuncios</li>
+        </ul>
+        <a href="./" class="btn btn-secondary" style="width:100%;">Empezar gratis</a>
+      </div>
+      <div class="plan-card featured">
+        <div class="plan-icon">👑</div>
+        <div class="plan-name">Premium Mensual</div>
+        <div class="plan-price">$18.900 <span>/mes</span></div>
+        <div class="plan-period">cobra mensual, cancela cuando quieras</div>
+        <ul class="plan-features">
+          <li>Intentos ilimitados</li>
+          <li>Acceso a todos los componentes</li>
+          <li>Progreso detallado</li>
+          <li>Sin anuncios</li>
+          <li>Estad&iacute;sticas avanzadas</li>
+        </ul>
+        <a href="./" class="btn btn-primary" style="width:100%;">Suscribirse</a>
+      </div>
+      <div class="plan-card">
+        <div class="plan-icon">⭐</div>
+        <div class="plan-name">Premium Anual</div>
+        <div class="plan-price">$129.900 <span>/a&ntilde;o</span></div>
+        <div class="plan-period">ahorra 42% vs. mensual</div>
+        <ul class="plan-features">
+          <li>Todo lo del plan mensual</li>
+          <li>2 meses gratis</li>
+          <li>Insignias exclusivas</li>
+          <li>Soporte prioritario</li>
+          <li>Reportes de progreso</li>
+        </ul>
+        <a href="./" class="btn btn-accent" style="width:100%;">Ahorra ahora</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="section" id="servicios" style="background:#F0F7FF; max-width:none; padding:80px 24px;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <h2 class="section-title">Servicios</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Todo lo que ofrecemos para potenciar el desarrollo del lenguaje.</p>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">🎮</div>
+          <div class="service-name">Actividades Interactivas</div>
+          <div class="service-desc">Ejercicios gamificados que hacen del aprendizaje una experiencia adictiva y divertida.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">📊</div>
+          <div class="service-name">Progreso Personalizado</div>
+          <div class="service-desc">Seguimiento detallado del avance con estad&iacute;sticas y reportes por componente.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🏆</div>
+          <div class="service-name">Sistema de Logros</div>
+          <div class="service-desc">Gana estrellas, insignias y recompensas mientras avanzas en tu aprendizaje.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🎯</div>
+          <div class="service-name">Contenido por Niveles</div>
+          <div class="service-desc">Dificultad progresiva adaptada a la edad y nivel de cada estudiante.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">📱</div>
+          <div class="service-name">Multiplataforma</div>
+          <div class="service-desc">Disponible en web y pr&oacute;ximamente en iOS y Android para aprender donde sea.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🔒</div>
+          <div class="service-name">Sin Anuncios</div>
+          <div class="service-desc">Experiencia libre de distracciones. Los usuarios Premium disfrutan contenido sin interrupciones.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="section" id="acerca">
+    <h2 class="section-title">Acerca de</h2>
+    <div class="section-divider"></div>
+    <div class="about-content">
+      <div class="about-text">
+        <h3>&iquest;Qu&eacute; es LinguaPlay?</h3>
+        <p>
+          LinguaPlay es una plataforma educativa dise&ntilde;ada para fortalecer las competencias ling&uuml;&iacute;sticas
+          de ni&ntilde;os y j&oacute;venes a trav&eacute;s de actividades interactivas y gamificadas.
+        </p>
+        <p>
+          Nuestro m&eacute;todo combina la teor&iacute;a del lenguaje con din&aacute;micas de juego para mantener
+          a los estudiantes motivados y comprometidos con su aprendizaje. Cubrimos &aacute;reas como fonolog&iacute;a,
+          sem&aacute;ntica, sintaxis y pragm&aacute;tica.
+        </p>
+        <p>
+          Creado por <strong>Santiago &Aacute;lvarez Londo&ntilde;o</strong>, LinguaPlay nace de la necesidad de
+          herramientas accesibles y efectivas para la estimulaci&oacute;n del lenguaje en el entorno educativo colombiano.
+        </p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-box">
+          <div class="stat-number">4</div>
+          <div class="stat-label">Componentes Ling&uuml;&iacute;sticos</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">36+</div>
+          <div class="stat-label">Actividades</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Enfocado en lenguaje</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Components -->
+  <section class="section" id="componentes" style="background:#FFFDE7; max-width:none; padding:80px 24px;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <h2 class="section-title">Componentes del Lenguaje</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Cuatro &aacute;reas fundamentales para un desarrollo ling&uuml;&iacute;stico completo.</p>
+      <div class="components-grid">
+        <div class="component-card fonologico">
+          <div class="emoji">🔊</div>
+          <h4>Componente Fonol&oacute;gico</h4>
+          <p>Trabaja la conciencia fonol&oacute;gica: reconocimiento de sonidos, rimas, segmentaci&oacute;n sil&aacute;bica y manipulaci&oacute;n de fonemas.</p>
+        </div>
+        <div class="component-card semantico">
+          <div class="emoji">📖</div>
+          <h4>Componente Sem&aacute;ntico</h4>
+          <p>Desarrolla el vocabulario y la comprensi&oacute;n del significado de palabras, sin&oacute;nimos, ant&oacute;nimos y categor&iacute;as sem&aacute;nticas.</p>
+        </div>
+        <div class="component-card sintactico">
+          <div class="emoji">🧩</div>
+          <h4>Componente Sint&aacute;ctico</h4>
+          <p>Fortalece la estructuraci&oacute;n de oraciones, concordancia gramatical, orden de palabras y construcci&oacute;n de textos.</p>
+        </div>
+        <div class="component-card pragmatico">
+          <div class="emoji">💬</div>
+          <h4>Componente Pragm&aacute;tico</h4>
+          <p>Potencia el uso social del lenguaje: turnos conversacionales, intenci&oacute;n comunicativa, emociones y contextos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Floating decorations -->
+  <div class="float-container">
+    <div class="float-item">🧩</div>
+    <div class="float-item">⭐</div>
+    <div class="float-item">🎮</div>
+    <div class="float-item">📚</div>
+    <div class="float-item">🧸</div>
+    <div class="float-item">🎯</div>
+    <div class="float-item">✏️</div>
+    <div class="float-item">🎨</div>
+    <div class="float-item">🔤</div>
+    <div class="float-item">🎈</div>
+    <div class="float-item">🖍️</div>
+    <div class="float-item">📝</div>
+    <div class="float-item">🎲</div>
+    <div class="float-item">🌈</div>
+    <div class="float-item">🧑‍🎓</div>
+  </div>
+
+  <!-- Social / Contact -->
+  <section class="social-section" id="contacto">
+    <h2 class="section-title">Con&eacute;ctate con nosotros</h2>
+    <div class="section-divider"></div>
+    <p class="section-subtitle">S&iacute;guenos en redes sociales para estar al tanto de novedades, tips y contenido educativo.</p>
+    <div class="social-links">
+      <a href="https://www.youtube.com/channel/UC2cVpm6ib3CVFtg-Qz9S6qg" target="_blank" rel="noopener" class="social-link">
+        ▶️ YouTube
+      </a>
+      <a href="https://www.instagram.com/linguaplayapp?igsh=YzAwM2cwbmt2dWRj" target="_blank" rel="noopener" class="social-link">
+        📸 Instagram
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 <a href="./">LinguaPlay</a> &mdash; Desarrollado por Santiago &Aacute;lvarez Londo&ntilde;o. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    document.getElementById('menuToggle').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+    document.querySelectorAll('.nav-links a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+  </script>
+</body>
 </html>
