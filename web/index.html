@@ -284,6 +284,45 @@
     .component-card.sintactico { border-left: 5px solid #FF8C42; }
     .component-card.pragmatico { border-left: 5px solid #E74C3C; }
 
+    /* Floating decorations */
+    .float-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .float-item {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.35;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) rotate(0deg) scale(0.5); opacity: 0; }
+      10% { opacity: 0.35; }
+      90% { opacity: 0.35; }
+      100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; }
+    }
+    .float-item:nth-child(1) { left: 5%; font-size: 1.8rem; animation-duration: 18s; animation-delay: 0s; }
+    .float-item:nth-child(2) { left: 12%; font-size: 2.5rem; animation-duration: 22s; animation-delay: 3s; }
+    .float-item:nth-child(3) { left: 20%; font-size: 1.5rem; animation-duration: 16s; animation-delay: 6s; }
+    .float-item:nth-child(4) { left: 28%; font-size: 2.2rem; animation-duration: 20s; animation-delay: 1s; }
+    .float-item:nth-child(5) { left: 35%; font-size: 1.6rem; animation-duration: 24s; animation-delay: 8s; }
+    .float-item:nth-child(6) { left: 42%; font-size: 2.8rem; animation-duration: 19s; animation-delay: 4s; }
+    .float-item:nth-child(7) { left: 50%; font-size: 1.4rem; animation-duration: 21s; animation-delay: 10s; }
+    .float-item:nth-child(8) { left: 58%; font-size: 2rem; animation-duration: 17s; animation-delay: 2s; }
+    .float-item:nth-child(9) { left: 65%; font-size: 2.6rem; animation-duration: 23s; animation-delay: 7s; }
+    .float-item:nth-child(10) { left: 72%; font-size: 1.7rem; animation-duration: 15s; animation-delay: 5s; }
+    .float-item:nth-child(11) { left: 78%; font-size: 2.3rem; animation-duration: 25s; animation-delay: 9s; }
+    .float-item:nth-child(12) { left: 85%; font-size: 1.9rem; animation-duration: 18s; animation-delay: 11s; }
+    .float-item:nth-child(13) { left: 92%; font-size: 2.1rem; animation-duration: 22s; animation-delay: 0s; }
+    .float-item:nth-child(14) { left: 8%; font-size: 2.4rem; animation-duration: 20s; animation-delay: 12s; }
+    .float-item:nth-child(15) { left: 48%; font-size: 1.3rem; animation-duration: 26s; animation-delay: 3s; }
+
     /* Social / Contact */
     .social-section {
       background: linear-gradient(135deg, #4A90D9 0%, #3273C4 100%);
@@ -540,23 +579,36 @@
     </div>
   </section>
 
+  <!-- Floating decorations -->
+  <div class="float-container">
+    <div class="float-item">🧩</div>
+    <div class="float-item">⭐</div>
+    <div class="float-item">🎮</div>
+    <div class="float-item">📚</div>
+    <div class="float-item">🧸</div>
+    <div class="float-item">🎯</div>
+    <div class="float-item">✏️</div>
+    <div class="float-item">🎨</div>
+    <div class="float-item">🔤</div>
+    <div class="float-item">🎈</div>
+    <div class="float-item">🖍️</div>
+    <div class="float-item">📝</div>
+    <div class="float-item">🎲</div>
+    <div class="float-item">🌈</div>
+    <div class="float-item">🧑‍🎓</div>
+  </div>
+
   <!-- Social / Contact -->
   <section class="social-section" id="contacto">
     <h2 class="section-title">Con&eacute;ctate con nosotros</h2>
     <div class="section-divider"></div>
     <p class="section-subtitle">S&iacute;guenos en redes sociales para estar al tanto de novedades, tips y contenido educativo.</p>
     <div class="social-links">
-      <a href="https://wa.me/57300XXXXXXX" target="_blank" rel="noopener" class="social-link">
-        📱 WhatsApp
+      <a href="https://www.youtube.com/channel/UC2cVpm6ib3CVFtg-Qz9S6qg" target="_blank" rel="noopener" class="social-link">
+        ▶️ YouTube
       </a>
-      <a href="https://instagram.com/linguaplay" target="_blank" rel="noopener" class="social-link">
+      <a href="https://www.instagram.com/linguaplayapp?igsh=YzAwM2cwbmt2dWRj" target="_blank" rel="noopener" class="social-link">
         📸 Instagram
-      </a>
-      <a href="https://facebook.com/linguaplay" target="_blank" rel="noopener" class="social-link">
-        👍 Facebook
-      </a>
-      <a href="https://tiktok.com/@linguaplay" target="_blank" rel="noopener" class="social-link">
-        🎵 TikTok
       </a>
     </div>
   </section>
