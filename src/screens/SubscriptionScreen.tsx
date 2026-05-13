@@ -326,6 +326,13 @@ export const SubscriptionScreen: React.FC = () => {
   return (
     <Container style={{ backgroundColor: theme.colors.background }} testID="subscription-screen">
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          onPress={() => navigateTo('home')}
+          style={styles.backButton}
+          testID="back-button"
+        >
+          <Text variant="body" color={theme.colors.primary}>← Volver al inicio</Text>
+        </TouchableOpacity>
         <View style={styles.header}>
           <Image
             source={require('../../assets/activity-images/Fondo.jpeg')}
@@ -418,6 +425,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 4,
   },
   header: {
     alignItems: 'center',
