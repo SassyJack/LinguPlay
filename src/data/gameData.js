@@ -146,7 +146,7 @@ export const components = [
             type: 'choice',
             instruction: 'Lee la palabra y toca la opción correcta.',
             audioPrompt: 'Palabra: manzana.',
-            prompt: '¿Qué imagen corresponde a manzana?',
+            prompt: '¿Qué frase corresponde a la imagen?',
             options: ['Fruta roja', 'Avion', 'Zapato'],
             correctAnswer: 'Fruta roja',
             supportText: 'Piensa en lo que comes y puede ser roja o verde.',

@@ -70,7 +70,6 @@
       justify-content: center;
       padding: 120px 24px 80px;
       background: linear-gradient(135deg, #FFF5E6 0%, #FFE4B5 50%, #FFD93D 100%);
-      text-align: center;
       position: relative;
       overflow: hidden;
     }
@@ -94,7 +93,26 @@
       bottom: -80px;
       left: -80px;
     }
-    .hero-content { max-width: 800px; position: relative; z-index: 1; }
+    .hero-content {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      max-width: 1100px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-logo {
+      flex-shrink: 0;
+    }
+    .hero-logo img {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 5px solid #FFD93D;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+    .hero-text { flex: 1; text-align: left; }
     .hero-badge {
       display: inline-block;
       background: #4A90D9;
@@ -119,10 +137,8 @@
       color: #34495E;
       margin-bottom: 32px;
       max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
     }
-    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
     .btn {
       display: inline-block;
       padding: 14px 32px;
@@ -261,6 +277,55 @@
     }
     .stat-number { font-size: 2rem; font-weight: 900; color: #4A90D9; }
     .stat-label { font-size: 0.85rem; color: #7F8C8D; font-weight: 600; }
+
+    /* Team */
+    .team-photo-container { text-align: center; margin-bottom: 32px; }
+    .team-photo {
+      max-width: 100%; border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      border: 3px solid #FFD93D;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .team-card {
+      background: #FFF5E6; border-radius: 20px; padding: 28px 20px;
+      text-align: center; border: 2px solid #FFD93D;
+      transition: all 0.3s;
+    }
+    .team-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+    .team-avatar { font-size: 3rem; margin-bottom: 12px; }
+    .team-card h4 { font-size: 1rem; font-weight: 800; color: #2C3E50; margin-bottom: 8px; }
+    .team-role { font-size: 0.9rem; color: #4A90D9; font-weight: 700; }
+    .team-semester { font-size: 0.85rem; color: #7F8C8D; margin-top: 4px; }
+
+    /* Advisors */
+    .advisors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 28px;
+    }
+    .advisor-card {
+      background: #fff; border-radius: 20px; padding: 32px 24px;
+      text-align: center; border: 2px solid #E0E0E0;
+      transition: all 0.3s;
+    }
+    .advisor-card:hover { border-color: #4A90D9; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(74,144,217,0.1); }
+    .advisor-photo {
+      width: 140px; height: 140px; border-radius: 50%;
+      object-fit: cover; margin-bottom: 16px;
+      border: 3px solid #4A90D9;
+    }
+    .advisor-degree {
+      display: inline-block; background: #4A90D9; color: #fff;
+      font-weight: 800; font-size: 0.75rem; padding: 4px 14px;
+      border-radius: 10px; letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .advisor-card h4 { font-size: 1.1rem; font-weight: 800; color: #2C3E50; margin-bottom: 6px; }
+    .advisor-role { font-size: 0.95rem; color: #FF8C42; font-weight: 700; margin-bottom: 12px; }
+    .advisor-card p { font-size: 0.9rem; color: #7F8C8D; line-height: 1.6; }
 
     /* Components */
     .components-grid {
@@ -401,8 +466,12 @@
       .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(255,245,230,0.98); flex-direction: column; padding: 20px 24px; border-bottom: 3px solid #FFD93D; }
       .nav-links.open { display: flex; }
       .menu-toggle { display: flex; }
+      .hero-content { flex-direction: column; text-align: center; gap: 32px; }
+      .hero-logo img { width: 180px; height: 180px; }
+      .hero-text { text-align: center; }
       .hero h1 { font-size: 2.2rem; }
-      .hero p { font-size: 1rem; }
+      .hero p { font-size: 1rem; margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
       .about-content { grid-template-columns: 1fr; }
       .about-stats { grid-template-columns: repeat(3, 1fr); }
       .section-title { font-size: 1.8rem; }
@@ -430,6 +499,8 @@
       <a href="#planes">Planes</a>
       <a href="#servicios">Servicios</a>
       <a href="#acerca">Acerca de</a>
+      <a href="#equipo">Equipo</a>
+      <a href="#asesoras">Asesoras</a>
       <a href="#componentes">Componentes</a>
       <a href="#foro">Foro</a>
       <a href="#contacto">Contacto</a>
@@ -440,13 +511,19 @@
   <!-- Hero -->
   <section class="hero" id="inicio">
     <div class="hero-content">
-      <div class="hero-badge">Aprende jugando</div>
-      <h1>Domina el lenguaje con <span>LinguaPlay</span></h1>
-      <p>Una plataforma educativa gamificada que transforma el aprendizaje de competencias ling&uuml;&iacute;sticas en una experiencia divertida y efectiva para ni&ntilde;os y j&oacute;venes.</p>
-      <div class="hero-actions">
-        <a href="./" class="btn btn-primary">Comenzar ahora</a>
-        <a href="#planes" class="btn btn-secondary">Ver planes</a>
+      <div class="hero-logo">
+        <img src="logo.jpg" alt="LinguaPlay" />
       </div>
+      <div class="hero-text">
+        <div class="hero-badge">Aprende jugando</div>
+        <h1>Domina el lenguaje con <span>LinguaPlay</span></h1>
+        <p>Una plataforma educativa gamificada que transforma el aprendizaje de competencias ling&uuml;&iacute;sticas en una experiencia divertida y efectiva para ni&ntilde;os y j&oacute;venes.</p>
+        <div class="hero-actions">
+          <a href="https://linguplay-test.onrender.com/" class="btn btn-primary">Comenzar ahora</a>
+          <a href="#planes" class="btn btn-secondary">Ver planes</a>
+        </div>
+      </div>
+    </div>
     </div>
   </section>
 
@@ -559,7 +636,7 @@
           sem&aacute;ntica, sintaxis y pragm&aacute;tica.
         </p>
         <p>
-          Creado por <strong>Santiago &Aacute;lvarez Londo&ntilde;o</strong>, LinguaPlay nace de la necesidad de
+          Creado por <strong>Estudiantes de octavo semestre de la universidad de Pamplona</strong>, LinguaPlay nace de la necesidad de
           herramientas accesibles y efectivas para la estimulaci&oacute;n del lenguaje en el entorno educativo colombiano.
         </p>
       </div>
@@ -575,6 +652,63 @@
         <div class="stat-box">
           <div class="stat-number">100%</div>
           <div class="stat-label">Enfocado en lenguaje</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="section" id="equipo" style="background:#fff; max-width:none; padding:80px 24px;">
+    <div style="max-width:900px; margin:0 auto;">
+      <h2 class="section-title">Qui&eacute;nes Somos</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Conoce al equipo detr&aacute;s de LinguaPlay.</p>
+      <div class="team-photo-container">
+        <img src="team-photo.jpg" alt="Equipo LinguaPlay" class="team-photo" onerror="this.style.display='none'" />
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">👨</div>
+          <h4>Cristian Stiven Pedroza Ar&eacute;valo</h4>
+          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
+          <p class="team-semester">Octavo Semestre</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👩</div>
+          <h4>Mar&iacute;a Camila Ortiz Pinz&oacute;n</h4>
+          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
+          <p class="team-semester">Octavo Semestre</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👩</div>
+          <h4>Karoll Jurieth Mendoza Camargo</h4>
+          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
+          <p class="team-semester">Octavo Semestre</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Advisors -->
+  <section class="section" id="asesoras" style="background:#F0F7FF; max-width:none; padding:80px 24px;">
+    <div style="max-width:900px; margin:0 auto;">
+      <h2 class="section-title">Nuestras Asesoras</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Profesionales que gu&iacute;an y respaldan nuestro proyecto.</p>
+      <div class="advisors-grid">
+        <div class="advisor-card">
+          <img src="maritza-advisor.png" alt="Mg. Gloria Maritza Diaz Jiménez" class="advisor-photo" onerror="this.style.display='none'" />
+          <div class="advisor-degree">Mag&iacute;ster</div>
+          <h4>Mg. Gloria Maritza Diaz Jim&eacute;nez</h4>
+          <div class="advisor-role">Docente Asesora</div>
+          <p>Docente de la Universidad de Pamplona con amplia experiencia en fonoaudiolog&iacute;a y desarrollo del lenguaje infantil. Gu&iacute;a y asesora al equipo en la creaci&oacute;n de herramientas educativas innovadoras.</p>
+        </div>
+        <div class="advisor-card">
+          <img src="luisa-advisor.png" alt="Mg. Luisa Fernanda García Rodríguez" class="advisor-photo" onerror="this.style.display='none'" />
+          <div class="advisor-degree">Mag&iacute;ster</div>
+          <h4>Mg. Luisa Fernanda Garc&iacute;a Rodr&iacute;guez</h4>
+          <div class="advisor-role">Docente Asesora</div>
+          <p>Docente de la Universidad de Pamplona especializada en fonoaudiolog&iacute;a educativa y desarrollo comunicativo infantil. Apoya al equipo con su experiencia en innovaci&oacute;n pedag&oacute;gica.</p>
         </div>
       </div>
     </div>
@@ -690,7 +824,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; 2026 <a href="./">LinguaPlay</a> &mdash; Desarrollado por Santiago &Aacute;lvarez Londo&ntilde;o. Todos los derechos reservados.</p>
+    <p>&copy; 2026 <a href="./">LinguaPlay</a>Desarrollado por SassyJ. Todos los derechos reservados.</p>
   </footer>
 
   <script>
