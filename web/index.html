@@ -262,6 +262,29 @@
     .stat-number { font-size: 2rem; font-weight: 900; color: #4A90D9; }
     .stat-label { font-size: 0.85rem; color: #7F8C8D; font-weight: 600; }
 
+    /* Team */
+    .team-photo-container { text-align: center; margin-bottom: 32px; }
+    .team-photo {
+      max-width: 100%; border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      border: 3px solid #FFD93D;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .team-card {
+      background: #FFF5E6; border-radius: 20px; padding: 28px 20px;
+      text-align: center; border: 2px solid #FFD93D;
+      transition: all 0.3s;
+    }
+    .team-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+    .team-avatar { font-size: 3rem; margin-bottom: 12px; }
+    .team-card h4 { font-size: 1rem; font-weight: 800; color: #2C3E50; margin-bottom: 8px; }
+    .team-role { font-size: 0.9rem; color: #4A90D9; font-weight: 700; }
+    .team-semester { font-size: 0.85rem; color: #7F8C8D; margin-top: 4px; }
+
     /* Components */
     .components-grid {
       display: grid;
@@ -430,6 +453,7 @@
       <a href="#planes">Planes</a>
       <a href="#servicios">Servicios</a>
       <a href="#acerca">Acerca de</a>
+      <a href="#equipo">Equipo</a>
       <a href="#componentes">Componentes</a>
       <a href="#foro">Foro</a>
       <a href="#contacto">Contacto</a>
@@ -575,6 +599,38 @@
         <div class="stat-box">
           <div class="stat-number">100%</div>
           <div class="stat-label">Enfocado en lenguaje</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="section" id="equipo" style="background:#fff; max-width:none; padding:80px 24px;">
+    <div style="max-width:900px; margin:0 auto;">
+      <h2 class="section-title">Qui&eacute;nes Somos</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Conoce al equipo detr&aacute;s de LinguaPlay.</p>
+      <div class="team-photo-container">
+        <img src="team-photo.jpg" alt="Equipo LinguaPlay" class="team-photo" onerror="this.style.display='none'" />
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">👨</div>
+          <h4>Cristian Stiven Pedroza Ar&eacute;valo</h4>
+          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
+          <p class="team-semester">Octavo Semestre</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👩</div>
+          <h4>Mar&iacute;a Camila Ortiz Pinz&oacute;n</h4>
+          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
+          <p class="team-semester">Octavo Semestre</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👩</div>
+          <h4>Karoll Jurieth Mendoza Camargo</h4>
+          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
+          <p class="team-semester">Octavo Semestre</p>
         </div>
       </div>
     </div>
