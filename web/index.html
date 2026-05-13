@@ -285,6 +285,32 @@
     .team-role { font-size: 0.9rem; color: #4A90D9; font-weight: 700; }
     .team-semester { font-size: 0.85rem; color: #7F8C8D; margin-top: 4px; }
 
+    /* Advisors */
+    .advisors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 28px;
+    }
+    .advisor-card {
+      background: #fff; border-radius: 20px; padding: 32px 24px;
+      text-align: center; border: 2px solid #E0E0E0;
+      transition: all 0.3s;
+    }
+    .advisor-card:hover { border-color: #4A90D9; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(74,144,217,0.1); }
+    .advisor-photo {
+      width: 140px; height: 140px; border-radius: 50%;
+      object-fit: cover; margin-bottom: 16px;
+      border: 3px solid #4A90D9;
+    }
+    .advisor-degree {
+      display: inline-block; background: #4A90D9; color: #fff;
+      font-weight: 800; font-size: 0.75rem; padding: 4px 14px;
+      border-radius: 10px; letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .advisor-card h4 { font-size: 1.1rem; font-weight: 800; color: #2C3E50; margin-bottom: 6px; }
+    .advisor-role { font-size: 0.95rem; color: #FF8C42; font-weight: 700; margin-bottom: 12px; }
+    .advisor-card p { font-size: 0.9rem; color: #7F8C8D; line-height: 1.6; }
+
     /* Components */
     .components-grid {
       display: grid;
@@ -454,6 +480,7 @@
       <a href="#servicios">Servicios</a>
       <a href="#acerca">Acerca de</a>
       <a href="#equipo">Equipo</a>
+      <a href="#asesoras">Asesoras</a>
       <a href="#componentes">Componentes</a>
       <a href="#foro">Foro</a>
       <a href="#contacto">Contacto</a>
@@ -631,6 +658,31 @@
           <h4>Karoll Jurieth Mendoza Camargo</h4>
           <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
           <p class="team-semester">Octavo Semestre</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Advisors -->
+  <section class="section" id="asesoras" style="background:#F0F7FF; max-width:none; padding:80px 24px;">
+    <div style="max-width:900px; margin:0 auto;">
+      <h2 class="section-title">Nuestras Asesoras</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Profesionales que gu&iacute;an y respaldan nuestro proyecto.</p>
+      <div class="advisors-grid">
+        <div class="advisor-card">
+          <img src="maritza-advisor.png" alt="Mg. Gloria Maritza Diaz Jiménez" class="advisor-photo" onerror="this.style.display='none'" />
+          <div class="advisor-degree">Mag&iacute;ster</div>
+          <h4>Mg. Gloria Maritza Diaz Jim&eacute;nez</h4>
+          <div class="advisor-role">Docente Asesora</div>
+          <p>Docente de la Universidad de Pamplona con amplia experiencia en fonoaudiolog&iacute;a y desarrollo del lenguaje infantil. Gu&iacute;a y asesora al equipo en la creaci&oacute;n de herramientas educativas innovadoras.</p>
+        </div>
+        <div class="advisor-card">
+          <img src="luisa-advisor.png" alt="Mg. Luisa Fernanda García Rodríguez" class="advisor-photo" onerror="this.style.display='none'" />
+          <div class="advisor-degree">Mag&iacute;ster</div>
+          <h4>Mg. Luisa Fernanda Garc&iacute;a Rodr&iacute;guez</h4>
+          <div class="advisor-role">Docente Asesora</div>
+          <p>Docente de la Universidad de Pamplona especializada en fonoaudiolog&iacute;a educativa y desarrollo comunicativo infantil. Apoya al equipo con su experiencia en innovaci&oacute;n pedag&oacute;gica.</p>
         </div>
       </div>
     </div>
