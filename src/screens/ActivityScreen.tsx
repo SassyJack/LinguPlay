@@ -7,8 +7,11 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { Button, Text, Container } from '@/components';
-import { useGame, useUser, useUI } from '@/hooks';
+import {
+  Button, Text, Container, ChoiceActivity, OrderActivity,
+  ProgressBar, TimerBar, StreakBadge, CelebrationOverlay,
+} from '@/components';
+import { useGame, useUser, useUI, useActivityTimer, useStreak, useActivityProgress } from '@/hooks';
 import { useTheme } from '@/theme';
 import { components } from '@/data/gameData';
 import { HapticService, audioService, speechService } from '@/services';
@@ -64,7 +67,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     selectedLevelId,
     selectedActivityId,
   } = useUI();
-  const { completeActivity, recordAttempt } = useGame();
+  const { completeActivity, recordAttempt, completedActivities } = useGame();
   const { canAttemptActivity, incrementDailyAttempts } = useUser();
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -73,6 +76,12 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const [isCorrect, setIsCorrect] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [celebrationVisible, setCelebrationVisible] = useState(false);
+  const [celebrationType, setCelebrationType] = useState<'correct' | 'incorrect'>('correct');
+  const [starsEarned, setStarsEarned] = useState(0);
+
+  const { currentStreak, addCorrect, resetStreak } = useStreak();
+  const { timeLeft, getStars } = useActivityTimer(null);
 
   const currentComponentId = componentId || selectedComponentId;
   const currentLevelId = levelId || selectedLevelId;
@@ -81,16 +90,23 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     ? (ACTIVITY_IMAGES[currentActivityId] || null)
     : null;
 
-  const activity = useMemo(() => {
+  const { level: currentLevel, activities: levelActivities } = useMemo(() => {
     const component = components.find(c => c.id === currentComponentId);
-    if (!component) return null;
-
+    if (!component) return { level: null, activities: [] as any[] };
     const level = component.levels.find((l: any) => l.id === currentLevelId);
-    if (!level) return null;
+    return { level: level || null, activities: level?.activities || [] };
+  }, [currentComponentId, currentLevelId]);
 
-    const targetActivityId = currentActivityId || (level.activities[0]?.id || null);
-    return level.activities.find((a: any) => a.id === targetActivityId) || null;
-  }, [currentComponentId, currentLevelId, currentActivityId]);
+  const activity = useMemo(() => {
+    const targetActivityId = currentActivityId || (levelActivities[0]?.id || null);
+    return levelActivities.find((a: any) => a.id === targetActivityId) || null;
+  }, [levelActivities, currentActivityId]);
+
+  const { completed: completedCount, total: totalActivities, currentIndex } = useActivityProgress(
+    completedActivities,
+    levelActivities,
+    currentActivityId
+  );
 
   useEffect(() => {
     if (!activity) {
@@ -196,11 +212,16 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       incrementDailyAttempts();
 
       if (correct) {
+        addCorrect();
+        const stars = getStars(true);
+        setStarsEarned(stars);
+        setCelebrationType('correct');
+        setCelebrationVisible(true);
+
         const reward = activity.reward || 10;
         completeActivity(activity.id, reward);
         await HapticService.success();
         await audioService.playSoundEffect('success');
-        showToast(`Correcto! +${reward} puntos`, 'success');
 
         try {
           const gameState = useGameStore.getState();
@@ -224,9 +245,11 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           console.warn('Sync error (offline):', syncError);
         }
       } else {
+        resetStreak();
+        setCelebrationType('incorrect');
+        setCelebrationVisible(true);
         await HapticService.error();
         await audioService.playSoundEffect('error');
-        showToast('Intenta de nuevo', 'error');
       }
     } catch (submitError) {
       console.error('Submit activity error:', submitError);
@@ -245,23 +268,18 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     selectedOption,
     sequenceAnswer,
     showToast,
+    addCorrect,
+    resetStreak,
+    getStars,
   ]);
 
-  const handleContinue = useCallback(() => {
-    if (!activity) {
-      return;
-    }
-
+  const handleCelebrationComplete = useCallback(() => {
+    setCelebrationVisible(false);
     if (isCorrect) {
-      const component = components.find(c => c.id === currentComponentId);
-      if (!component) return;
-
-      const level = component.levels.find((l: any) => l.id === currentLevelId);
-      if (!level) return;
-
-      const currentActivityIndex = level.activities.findIndex((a: any) => a.id === activity.id);
-      if (currentActivityIndex >= 0 && currentActivityIndex < level.activities.length - 1) {
-        const nextActivity = level.activities[currentActivityIndex + 1];
+      if (!activity) return;
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < levelActivities.length) {
+        const nextActivity = levelActivities[nextIndex];
         navigateTo('activity', {
           componentId: currentComponentId || '',
           levelId: currentLevelId || '',
@@ -276,7 +294,30 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       setSequenceAnswer([]);
       setError(null);
     }
-  }, [activity, currentComponentId, currentLevelId, isCorrect, navigateTo]);
+  }, [activity, currentComponentId, currentLevelId, isCorrect, navigateTo, currentIndex, levelActivities]);
+
+  const handleContinue = useCallback(() => {
+    setCelebrationVisible(false);
+    if (isCorrect) {
+      if (!activity) return;
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < levelActivities.length) {
+        const nextActivity = levelActivities[nextIndex];
+        navigateTo('activity', {
+          componentId: currentComponentId || '',
+          levelId: currentLevelId || '',
+          activityId: nextActivity.id,
+        });
+      } else {
+        navigateTo('results');
+      }
+    } else {
+      setShowResult(false);
+      setSelectedOption(null);
+      setSequenceAnswer([]);
+      setError(null);
+    }
+  }, [activity, currentComponentId, currentLevelId, isCorrect, navigateTo, currentIndex, levelActivities]);
 
   if (!activity) {
     return (
@@ -316,19 +357,36 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
         accessible={true}
         accessibilityLabel="Encabezado de actividad"
       >
-        <Button
-          title="Salir"
-          onPress={handleExit}
-          variant="outline"
-          testID="exit-button"
-        />
-        <Text
-          variant="h3"
-          color={theme.colors.onBackground}
-          testID="activity-title"
-        >
-          {activity.title}
-        </Text>
+        <View style={styles.headerTop}>
+          <Button
+            title="Salir"
+            onPress={handleExit}
+            variant="outline"
+            testID="exit-button"
+          />
+          <Text
+            variant="h3"
+            color={theme.colors.onBackground}
+            testID="activity-title"
+            style={styles.headerTitle}
+          >
+            {activity.title}
+          </Text>
+          <StreakBadge streak={currentStreak} theme={theme} />
+        </View>
+        <View style={styles.headerBars}>
+          <ProgressBar
+            current={completedCount}
+            total={totalActivities}
+            currentIndex={currentIndex}
+            theme={theme}
+          />
+          <TimerBar
+            timeLeft={timeLeft}
+            timeLimit={null}
+            theme={theme}
+          />
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
@@ -429,103 +487,25 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           </Text>
         </View>
 
-        {!showResult && activity.options ? (
-          <View
-            testID="options-container"
-            accessible={true}
-            accessibilityLabel="Opciones de respuesta"
-          >
-            <Text
-              variant="h3"
-              style={{ marginBottom: 12, marginTop: 16 }}
-              testID="options-label"
-            >
-              Opciones:
-            </Text>
-            {activity.options.map((option: string, index: number) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.optionButton,
-                  {
-                    backgroundColor:
-                      selectedOption === option
-                        ? theme.colors.primary
-                        : theme.colors.surface,
-                    borderColor:
-                      selectedOption === option
-                        ? theme.colors.primary
-                        : theme.colors.gray300 || '#D1D5DB',
-                    borderWidth: 2,
-                  },
-                ]}
-                onPress={() => handleSelectOption(option)}
-                testID={`option-${index}`}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel={`Opcion ${index + 1}: ${option}${selectedOption === option ? ' seleccionada' : ''}`}
-              >
-                <Text
-                  variant="body"
-                  style={{ fontWeight: '600' }}
-                  color={selectedOption === option ? theme.colors.white : theme.colors.onSurface}
-                >
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        {!showResult && activity.type === 'choice' && activity.options ? (
+          <ChoiceActivity
+            options={activity.options}
+            selectedOption={selectedOption}
+            onSelectOption={handleSelectOption}
+            disabled={isSubmitting}
+            theme={theme}
+          />
         ) : null}
 
-        {!showResult && activity.type === 'order' ? (
-          <View testID="order-container">
-            <Text variant="h3" style={{ marginBottom: 12, marginTop: 16 }}>
-              Tu respuesta:
-            </Text>
-            <View style={styles.sequenceContainer}>
-              {sequenceAnswer.map((item, index) => (
-                <TouchableOpacity
-                  key={`seq-${index}`}
-                  style={[styles.sequenceItem, { backgroundColor: theme.colors.primary }]}
-                  onPress={() => handleRemoveSequenceItem(index)}
-                >
-                  <Text variant="body" color={theme.colors.white}>{item}</Text>
-                </TouchableOpacity>
-              ))}
-              {sequenceAnswer.length === 0 ? (
-                <Text variant="caption" color={theme.colors.gray500 || '#9CA3AF'}>
-                  Toca los elementos de abajo para ordenarlos
-                </Text>
-              ) : null}
-            </View>
-
-            <Text variant="h3" style={{ marginBottom: 12, marginTop: 24 }}>
-              Elementos:
-            </Text>
-            <View style={styles.bankContainer}>
-              {activity.bank?.map((item: string, index: number) => {
-                const selectedCount = sequenceAnswer.filter(answer => answer === item).length;
-                const availableCount = activity.bank.filter((bankItem: string) => bankItem === item).length;
-
-                return (
-                  <TouchableOpacity
-                    key={`bank-${index}`}
-                    style={[
-                      styles.bankItem,
-                      {
-                        backgroundColor: theme.colors.surface,
-                        borderColor: theme.colors.primary,
-                        opacity: selectedCount >= availableCount ? 0.5 : 1,
-                      },
-                    ]}
-                    onPress={() => handlePressBankItem(item)}
-                  >
-                    <Text variant="body" color={theme.colors.onBackground}>{item}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
+        {!showResult && activity.type === 'order' && activity.bank ? (
+          <OrderActivity
+            bank={activity.bank}
+            sequenceAnswer={sequenceAnswer}
+            onPressBankItem={handlePressBankItem}
+            onRemoveSequenceItem={handleRemoveSequenceItem}
+            disabled={isSubmitting}
+            theme={theme}
+          />
         ) : null}
 
         {showResult ? (
@@ -550,7 +530,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
             >
               {isCorrect ? 'Correcto!' : 'Intenta de nuevo'}
             </Text>
-            {isCorrect ? (
+            {isCorrect && (
               <Text
                 variant="body"
                 color={theme.colors.success}
@@ -559,26 +539,6 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               >
                 Ganaste {activity.reward || 10} puntos
               </Text>
-            ) : (
-              <View testID="incorrect-section">
-                <Text
-                  variant="body"
-                  color={theme.colors.error}
-                  style={{ textAlign: 'center', marginBottom: 8 }}
-                >
-                  La respuesta correcta era:
-                </Text>
-                <Text
-                  variant="h3"
-                  color={theme.colors.error}
-                  style={{ textAlign: 'center' }}
-                  testID="correct-answer-text"
-                >
-                  {activity.type === 'choice'
-                    ? activity.correctAnswer
-                    : activity.correctSequence?.join(' ')}
-                </Text>
-              </View>
             )}
           </View>
         ) : null}
@@ -622,6 +582,15 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
             />
           )}
         </View>
+
+        <CelebrationOverlay
+          visible={celebrationVisible}
+          type={celebrationType}
+          streak={currentStreak}
+          stars={starsEarned}
+          theme={theme}
+          onComplete={handleCelebrationComplete}
+        />
       </ScrollView>
     </Container>
   );
@@ -629,13 +598,22 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
+    marginBottom: 8,
+  },
+  headerTitle: {
+    flex: 1,
+  },
+  headerBars: {
+    gap: 4,
   },
   container: {
     padding: 16,
@@ -689,19 +667,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
   },
-  optionButton: {
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 60,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 4,
-  },
   resultCard: {
     borderRadius: 20,
     padding: 24,
@@ -716,41 +681,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 24,
     gap: 12,
-  },
-  sequenceContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 12,
-    backgroundColor: '#E3F2FD',
-    borderRadius: 16,
-    minHeight: 60,
-    alignItems: 'center',
-    gap: 8,
-  },
-  sequenceItem: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  bankContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  bankItem: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 2,
-    minWidth: 70,
-    alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
   },
   errorText: {
     textAlign: 'center',
