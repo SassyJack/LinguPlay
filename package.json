@@ -11,7 +11,10 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx,.js",
     "lint:fix": "eslint . --ext .ts,.tsx,.js --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "cypress run --browser chrome"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.0.2",
@@ -38,8 +41,10 @@
     "@types/react-dom": "^19.1.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
+    "cypress": "^15.15.0",
     "eslint": "^8.56.0",
     "prettier": "^3.2.0",
-    "typescript": "^5.4"
+    "typescript": "^5.4",
+    "webpack": "^5.106.2"
   }
 }

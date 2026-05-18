@@ -1,0 +1,47 @@
+{
+  "user": {
+    "email": "test@example.com",
+    "password": "password123"
+  },
+  "components": [
+    {
+      "id": "fonologico",
+      "name": "Fonológico"
+    },
+    {
+      "id": "semantico",
+      "name": "Semántico"
+    },
+    {
+      "id": "sintactico",
+      "name": "Sintáctico"
+    },
+    {
+      "id": "pragmatico",
+      "name": "Pragmático"
+    }
+  ],
+  "levels": [
+    {
+      "id": "level-1",
+      "name": "Nivel 1",
+      "age": 7
+    },
+    {
+      "id": "level-2",
+      "name": "Nivel 2",
+      "age": 8
+    },
+    {
+      "id": "level-3",
+      "name": "Nivel 3",
+      "age": 9
+    }
+  ],
+  "activities": {
+    "fonologico-7-caza-sonidos": {
+      "correctAnswer": "Mano",
+      "incorrectAnswer": "Sol"
+    }
+  }
+}

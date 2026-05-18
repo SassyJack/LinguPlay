@@ -81,7 +81,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
   const [starsEarned, setStarsEarned] = useState(0);
 
   const { currentStreak, addCorrect, resetStreak } = useStreak();
-  const { timeLeft, getStars } = useActivityTimer(null);
+  const { timeLeft, elapsedTime, getStars, reset: resetTimer } = useActivityTimer(null);
 
   const currentComponentId = componentId || selectedComponentId;
   const currentLevelId = levelId || selectedLevelId;
@@ -119,6 +119,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     setIsCorrect(false);
     setIsSubmitting(false);
     setError(null);
+    resetTimer();
 
     if (activity.audioPrompt) {
       speechService.speak(activity.audioPrompt);
@@ -127,7 +128,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
     return () => {
       speechService.stop();
     };
-  }, [activity]);
+  }, [activity, resetTimer]);
 
   const handleExit = useCallback(() => {
     speechService.stop();
@@ -286,7 +287,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           activityId: nextActivity.id,
         });
       } else {
-        navigateTo('results');
+        navigateTo('level', { componentId: currentComponentId || '' });
       }
     } else {
       setShowResult(false);
@@ -295,6 +296,14 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
       setError(null);
     }
   }, [activity, currentComponentId, currentLevelId, isCorrect, navigateTo, currentIndex, levelActivities]);
+
+  useEffect(() => {
+    if (!celebrationVisible) return;
+    const timer = setTimeout(() => {
+      handleCelebrationComplete();
+    }, 2900);
+    return () => clearTimeout(timer);
+  }, [celebrationVisible, handleCelebrationComplete]);
 
   const handleContinue = useCallback(() => {
     setCelebrationVisible(false);
@@ -309,7 +318,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           activityId: nextActivity.id,
         });
       } else {
-        navigateTo('results');
+        navigateTo('level', { componentId: currentComponentId || '' });
       }
     } else {
       setShowResult(false);
@@ -384,12 +393,13 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
           <TimerBar
             timeLeft={timeLeft}
             timeLimit={null}
+            elapsedTime={elapsedTime}
             theme={theme}
           />
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
         {error && (
           <View
             style={[styles.card, { backgroundColor: theme.colors.error + '15' }]}
@@ -528,7 +538,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               style={{ textAlign: 'center', marginBottom: 8 }}
               testID="result-title"
             >
-              {isCorrect ? 'Correcto!' : 'Intenta de nuevo'}
+              {isCorrect ? '¡Correcto!' : 'Intenta de nuevo'}
             </Text>
             {isCorrect && (
               <Text
@@ -578,20 +588,21 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
               title={isCorrect ? 'Siguiente' : 'Reintentar'}
               onPress={handleContinue}
               variant="primary"
+              disabled={celebrationVisible}
               testID="continue-button"
             />
           )}
         </View>
-
-        <CelebrationOverlay
-          visible={celebrationVisible}
-          type={celebrationType}
-          streak={currentStreak}
-          stars={starsEarned}
-          theme={theme}
-          onComplete={handleCelebrationComplete}
-        />
       </ScrollView>
+
+      <CelebrationOverlay
+        visible={celebrationVisible}
+        type={celebrationType}
+        streak={currentStreak}
+        stars={starsEarned}
+        reward={activity?.reward || 0}
+        theme={theme}
+      />
     </Container>
   );
 };

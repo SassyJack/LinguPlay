@@ -132,7 +132,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ testID = 'home-screen' }
                 </Text>
               </View>
             </View>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton} testID="logout-button">
               <Text variant="caption" color={theme.colors.error}>Cerrar Sesión</Text>
             </TouchableOpacity>
           </View>

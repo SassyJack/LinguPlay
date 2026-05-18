@@ -67,7 +67,7 @@ export const LoginScreen: React.FC = () => {
   }, [email, password, setUser, setSubscriptionTier, navigateTo, showToast]);
 
   return (
-    <Container style={{ backgroundColor: theme.colors.background }}>
+    <Container style={{ backgroundColor: theme.colors.background }} testID="login-screen">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -89,6 +89,7 @@ export const LoginScreen: React.FC = () => {
                     borderColor: theme.colors.error,
                   },
                 ]}
+                testID="login-error"
               >
                 <Text variant="body" color={theme.colors.error}>
                   {errorMessage}
@@ -110,6 +111,7 @@ export const LoginScreen: React.FC = () => {
               placeholder="ejemplo@correo.com"
               keyboardType="email-address"
               autoCapitalize="none"
+              testID="email-input"
             />
 
             <Text variant="h3" style={styles.label}>Contrasena</Text>
@@ -125,6 +127,7 @@ export const LoginScreen: React.FC = () => {
               }}
               placeholder="********"
               secureTextEntry
+              testID="password-input"
             />
 
             <Button
@@ -132,11 +135,13 @@ export const LoginScreen: React.FC = () => {
               onPress={handleLogin}
               disabled={isLoading}
               style={{ marginTop: 24 }}
+              testID="login-button"
             />
 
             <TouchableOpacity
               onPress={() => navigateTo('signup')}
               style={{ marginTop: 16, alignItems: 'center' }}
+              testID="signup-link"
             >
               <Text variant="body" color={theme.colors.primary}>
                 No tienes cuenta? Registrate aqui

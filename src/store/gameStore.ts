@@ -51,6 +51,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         [activityId]: true,
       },
       score: state.score + points,
+      stars: state.stars + 2,
       totalCorrect: state.totalCorrect + 1,
       totalAttempts: state.totalAttempts + 1,
     }));

@@ -48,7 +48,7 @@ const ChoiceActivity: React.FC<ChoiceActivityProps> = ({
           ]}
           onPress={() => onSelectOption(option)}
           disabled={disabled}
-          testID={`option-${index}`}
+          testID={`choice-option-${option}`}
           accessible={true}
           accessibilityRole="button"
           accessibilityLabel={`Opcion ${index + 1}: ${option}${selectedOption === option ? ' seleccionada' : ''}`}

@@ -1,14 +1,5 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  withDelay,
-  Easing,
-  runOnJS,
-} from 'react-native-reanimated';
 import { Text } from '@/components';
 import { Theme } from '@/theme';
 
@@ -17,6 +8,7 @@ interface CelebrationOverlayProps {
   type: 'correct' | 'incorrect';
   streak?: number;
   stars?: number;
+  reward?: number;
   theme: Theme;
   onComplete?: () => void;
   testID?: string;
@@ -31,41 +23,26 @@ interface ParticleProps {
 }
 
 const Particle: React.FC<ParticleProps> = ({ index, color }) => {
-  const translateY = useSharedValue(0);
-  const translateX = useSharedValue(0);
-  const opacity = useSharedValue(1);
-  const rotate = useSharedValue(0);
-
-  useEffect(() => {
-    const delay = index * 30;
-    const xDest = (Math.random() - 0.5) * 300;
-    const yDest = -200 - Math.random() * 300;
-    translateX.value = withDelay(delay, withTiming(xDest, { duration: 800, easing: Easing.out(Easing.ease) }));
-    translateY.value = withDelay(delay, withTiming(yDest, { duration: 800, easing: Easing.out(Easing.ease) }));
-    opacity.value = withDelay(delay, withTiming(0, { duration: 800 }));
-    rotate.value = withDelay(delay, withTiming(Math.random() * 360, { duration: 800 }));
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { rotate: `${rotate.value}deg` },
-    ],
-    opacity: opacity.value,
-  }));
+  const x = (Math.random() - 0.5) * 260;
+  const y = -120 - Math.random() * 200;
+  const size = 6 + Math.random() * 12;
+  const rotation = Math.random() * 360;
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.particle,
         {
           backgroundColor: color,
-          width: 8 + Math.random() * 10,
-          height: 8 + Math.random() * 10,
+          width: size,
+          height: size,
           borderRadius: Math.random() > 0.5 ? 50 : 4,
+          transform: [
+            { translateX: x },
+            { translateY: y },
+            { rotate: `${rotation}deg` },
+          ],
         },
-        animatedStyle,
       ]}
     />
   );
@@ -77,31 +54,12 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   streak = 0,
   stars = 0,
   theme,
-  onComplete,
   testID = 'celebration-overlay',
 }) => {
-  const overlayOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (visible) {
-      overlayOpacity.value = withSequence(
-        withTiming(1, { duration: 200 }),
-        withDelay(1200, withTiming(0, { duration: 300 }, () => {
-          if (onComplete) runOnJS(onComplete)();
-        }))
-      );
-    }
-  }, [visible]);
-
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: overlayOpacity.value,
-    pointerEvents: overlayOpacity.value > 0 ? 'auto' : ('none' as any),
-  }));
-
   if (!visible) return null;
 
   return (
-    <Animated.View style={[styles.overlay, overlayStyle]} testID={testID} pointerEvents="none">
+    <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.1)' }]} testID={testID} pointerEvents="none">
       {type === 'correct' && (
         <>
           {Array.from({ length: PARTICLE_COUNT }).map((_, i) => (
@@ -131,7 +89,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
           </Text>
         </View>
       )}
-    </Animated.View>
+    </View>
   );
 };
 

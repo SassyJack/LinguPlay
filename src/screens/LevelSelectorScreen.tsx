@@ -23,7 +23,7 @@ interface LevelSelectorProps {
 
 export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
   componentId,
-  testID = 'level-selector-screen',
+  testID = 'level-screen',
 }) => {
   const { theme } = useTheme();
   const { navigateTo, goBack, selectedComponentId } = useUI();
@@ -176,7 +176,7 @@ export const LevelSelectorScreen: React.FC<LevelSelectorProps> = ({
                 },
               ]}
               onPress={() => handleSelectLevel(level.id)}
-              testID={`level-card-${level.id}`}
+              testID={`level-${level.id}`}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel={`${level.difficulty}: ${progressPercentage}% completado${isCompleted ? ', completado' : ''}`}
