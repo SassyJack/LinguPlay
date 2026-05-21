@@ -22,7 +22,7 @@ interface ComponentSelectorScreenProps {
 }
 
 export const ComponentSelectorScreen: React.FC<ComponentSelectorScreenProps> = ({
-  testID = 'component-selector-screen',
+  testID = 'component-screen',
 }) => {
   const { theme } = useTheme();
   const { navigateTo, goBack } = useUI();
@@ -121,7 +121,7 @@ export const ComponentSelectorScreen: React.FC<ComponentSelectorScreenProps> = (
                 { backgroundColor: component.accent + '30' },
               ]}
               onPress={() => handleSelectComponent(component.id)}
-              testID={`component-card-${component.id}`}
+              testID={`component-${component.id}`}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel={`${component.name}: ${progressPercentage}% completado${isCompleted ? ', completado' : ''}`}

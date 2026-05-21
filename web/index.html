@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LinguaPlay - Portafolio</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
@@ -481,6 +482,16 @@
       .plans-grid { grid-template-columns: 1fr; }
       .about-stats { grid-template-columns: 1fr; }
     }
+
+    /* Tables */
+    .table-wrapper { overflow-x: auto; margin-bottom: 32px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    th, td { padding: 14px 18px; text-align: left; font-size: 0.95rem; }
+    th { background: #4A90D9; color: #fff; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    tr { border-bottom: 1px solid #F0F0F0; }
+    tr:last-child { border-bottom: none; }
+    tr:hover { background: #F8FAFE; }
+    .table-caption { text-align: right; font-size: 0.85rem; color: #7F8C8D; margin-top: 8px; font-style: italic; }
   </style>
 </head>
 <body>
@@ -496,10 +507,10 @@
     </button>
     <div class="nav-links" id="navLinks">
       <a href="#inicio">Inicio</a>
-      <a href="#planes">Planes</a>
+      <a href="#juegos">Juegos</a>
       <a href="#servicios">Servicios</a>
+      <a href="#paquetes">Paquetes</a>
       <a href="#acerca">Acerca de</a>
-      <a href="#equipo">Equipo</a>
       <a href="#asesoras">Asesoras</a>
       <a href="#componentes">Componentes</a>
       <a href="#foro">Foro</a>
@@ -520,101 +531,144 @@
         <p>Una plataforma educativa gamificada que transforma el aprendizaje de competencias ling&uuml;&iacute;sticas en una experiencia divertida y efectiva para ni&ntilde;os y j&oacute;venes.</p>
         <div class="hero-actions">
           <a href="https://linguplay-test.onrender.com/" class="btn btn-primary">Comenzar ahora</a>
-          <a href="#planes" class="btn btn-secondary">Ver planes</a>
+          <a href="#juegos" class="btn btn-secondary">Ver juegos</a>
         </div>
       </div>
     </div>
     </div>
   </section>
 
-  <!-- Plans -->
-  <section class="section" id="planes">
-    <h2 class="section-title">Planes</h2>
+  <!-- Juegos -->
+  <section class="section" id="juegos">
+    <h2 class="section-title">Juegos Principales</h2>
     <div class="section-divider"></div>
-    <p class="section-subtitle">Elige el plan ideal para potenciar las habilidades lingu&uuml;&iacute;sticas.</p>
+    <p class="section-subtitle">Juegos dise&ntilde;ados para potenciar las habilidades del lenguaje en ni&ntilde;os de 7 a 9 a&ntilde;os.</p>
     <div class="plans-grid">
       <div class="plan-card">
-        <div class="plan-icon">🎯</div>
-        <div class="plan-name">Gratuito</div>
-        <div class="plan-price">$0</div>
-        <div class="plan-period">siempre</div>
+        <div class="plan-icon">🌍</div>
+        <div class="plan-name">Juego Explorador</div>
+        <div class="plan-period">Nivel inicial</div>
         <ul class="plan-features">
-          <li>5 intentos diarios</li>
-          <li>Acceso a todos los componentes</li>
-          <li>Progreso b&aacute;sico</li>
-          <li class="disabled">Intentos ilimitados</li>
-          <li class="disabled">Sin anuncios</li>
+          <li>Acceso a m&oacute;dulos seleccionados</li>
+          <li>Actividades para habilidades b&aacute;sicas</li>
+          <li>Progreso limitado</li>
         </ul>
-        <a href="./" class="btn btn-secondary" style="width:100%;">Empezar gratis</a>
+        <a href="#paquetes" class="btn btn-secondary" style="width:100%;">Ver precio</a>
       </div>
       <div class="plan-card featured">
-        <div class="plan-icon">👑</div>
-        <div class="plan-name">Premium Mensual</div>
-        <div class="plan-price">$18.900 <span>/mes</span></div>
-        <div class="plan-period">cobra mensual, cancela cuando quieras</div>
+        <div class="plan-icon">⚔️</div>
+        <div class="plan-name">Juego Maestro</div>
+        <div class="plan-period">Nivel intermedio</div>
         <ul class="plan-features">
-          <li>Intentos ilimitados</li>
-          <li>Acceso a todos los componentes</li>
-          <li>Progreso detallado</li>
-          <li>Sin anuncios</li>
-          <li>Estad&iacute;sticas avanzadas</li>
+          <li>Acceso ampliado a m&oacute;dulos</li>
+          <li>Actividades para habilidades adicionales</li>
+          <li>M&aacute;s niveles disponibles</li>
         </ul>
-        <a href="./" class="btn btn-primary" style="width:100%;">Suscribirse</a>
+        <a href="#paquetes" class="btn btn-primary" style="width:100%;">Ver precio</a>
       </div>
       <div class="plan-card">
-        <div class="plan-icon">⭐</div>
-        <div class="plan-name">Premium Anual</div>
-        <div class="plan-price">$129.900 <span>/a&ntilde;o</span></div>
-        <div class="plan-period">ahorra 42% vs. mensual</div>
+        <div class="plan-icon">🦸</div>
+        <div class="plan-name">Juego H&eacute;roe</div>
+        <div class="plan-period">Nivel completo</div>
         <ul class="plan-features">
-          <li>Todo lo del plan mensual</li>
-          <li>2 meses gratis</li>
-          <li>Insignias exclusivas</li>
-          <li>Soporte prioritario</li>
-          <li>Reportes de progreso</li>
+          <li>Acceso a todos los m&oacute;dulos</li>
+          <li>Todas las actividades del lenguaje</li>
+          <li>Todos los niveles disponibles</li>
         </ul>
-        <a href="./" class="btn btn-accent" style="width:100%;">Ahorra ahora</a>
+        <a href="#paquetes" class="btn btn-accent" style="width:100%;">Ver precio</a>
       </div>
     </div>
   </section>
 
-  <!-- Services -->
+  <!-- Servicios Complementarios -->
   <section class="section" id="servicios" style="background:#F0F7FF; max-width:none; padding:80px 24px;">
     <div style="max-width:1100px; margin:0 auto;">
-      <h2 class="section-title">Servicios</h2>
+      <h2 class="section-title">Servicios Complementarios</h2>
       <div class="section-divider"></div>
-      <p class="section-subtitle">Todo lo que ofrecemos para potenciar el desarrollo del lenguaje.</p>
+      <p class="section-subtitle">Servicios adicionales para padres, docentes y profesionales.</p>
       <div class="services-grid">
         <div class="service-card">
-          <div class="service-icon">🎮</div>
-          <div class="service-name">Actividades Interactivas</div>
-          <div class="service-desc">Ejercicios gamificados que hacen del aprendizaje una experiencia adictiva y divertida.</div>
+          <div class="service-icon">📋</div>
+          <div class="service-name">Gu&iacute;a Interfaz</div>
+          <div class="service-desc">Capacitaci&oacute;n sobre el uso adecuado de la plataforma para padres, docentes y profesionales. Modalidad virtual o presencial.</div>
         </div>
         <div class="service-card">
-          <div class="service-icon">📊</div>
-          <div class="service-name">Progreso Personalizado</div>
-          <div class="service-desc">Seguimiento detallado del avance con estad&iacute;sticas y reportes por componente.</div>
+          <div class="service-icon">📄</div>
+          <div class="service-name">Reporte de Progreso</div>
+          <div class="service-desc">Informe sobre los resultados obtenidos y la potenciaci&oacute;n de habilidades trabajadas. Digital y descargable.</div>
         </div>
         <div class="service-card">
-          <div class="service-icon">🏆</div>
-          <div class="service-name">Sistema de Logros</div>
-          <div class="service-desc">Gana estrellas, insignias y recompensas mientras avanzas en tu aprendizaje.</div>
+          <div class="service-icon">🩺</div>
+          <div class="service-name">Potencia Personalizada</div>
+          <div class="service-desc">Intervenci&oacute;n fonoaudiol&oacute;gica profesional para reforzar habilidades o trabajar dificultades espec&iacute;ficas. Sesiones sincr&oacute;nicas virtuales o presenciales.</div>
         </div>
         <div class="service-card">
-          <div class="service-icon">🎯</div>
-          <div class="service-name">Contenido por Niveles</div>
-          <div class="service-desc">Dificultad progresiva adaptada a la edad y nivel de cada estudiante.</div>
+          <div class="service-icon">🔄</div>
+          <div class="service-name">Bonus</div>
+          <div class="service-desc">Actualizaciones de la plataforma: nuevos niveles, actividades y recursos. Disponible para usuarios activos.</div>
         </div>
-        <div class="service-card">
-          <div class="service-icon">📱</div>
-          <div class="service-name">Multiplataforma</div>
-          <div class="service-desc">Disponible en web y pr&oacute;ximamente en iOS y Android para aprender donde sea.</div>
-        </div>
-        <div class="service-card">
-          <div class="service-icon">🔒</div>
-          <div class="service-name">Sin Anuncios</div>
-          <div class="service-desc">Experiencia libre de distracciones. Los usuarios Premium disfrutan contenido sin interrupciones.</div>
-        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Paquetes y Valores -->
+  <section class="section" id="paquetes" style="background:#fff; max-width:none; padding:80px 24px;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <h2 class="section-title">Paquetes y Valores</h2>
+      <div class="section-divider"></div>
+      <p class="section-subtitle">Conoce todos los paquetes disponibles y sus valores.</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Nombre del paquete</th>
+              <th>Acceso o Finalidad</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="3" style="font-weight:700; color:#4A90D9;">Juego</td>
+              <td><strong>Juego Explorador</strong></td>
+              <td>Nivel inicial, acceso limitado a m&oacute;dulos y actividades para potenciar habilidades b&aacute;sicas</td>
+              <td style="font-weight:800; color:#2C3E50;">$80,000</td>
+            </tr>
+            <tr>
+              <td><strong>Juego Maestro</strong></td>
+              <td>Nivel intermedio, acceso a m&aacute;s m&oacute;dulos y actividades para potenciar habilidades adicionales</td>
+              <td style="font-weight:800; color:#2C3E50;">$130,000</td>
+            </tr>
+            <tr>
+              <td><strong>Juego H&eacute;roe</strong></td>
+              <td>Nivel completo, acceso a todos los m&oacute;dulos y actividades para potenciar todas las habilidades del lenguaje</td>
+              <td style="font-weight:800; color:#2C3E50;">$190,000</td>
+            </tr>
+            <tr>
+              <td rowspan="3" style="font-weight:700; color:#FF8C42;">Paquete complementario</td>
+              <td><strong>Gu&iacute;a Interfaz</strong></td>
+              <td>Capacitaci&oacute;n sobre manejo de la plataforma para padres, docentes y profesionales</td>
+              <td style="font-weight:800; color:#2C3E50;">$120,000</td>
+            </tr>
+            <tr>
+              <td><strong>Reporte de Progreso</strong></td>
+              <td>Informe sobre los resultados obtenidos y la potenciaci&oacute;n de habilidades trabajadas</td>
+              <td style="font-weight:800; color:#2C3E50;">$200,000</td>
+            </tr>
+            <tr>
+              <td><strong>Potencia Personalizada</strong></td>
+              <td>Intervenci&oacute;n fonoaudiol&oacute;gica profesional para reforzar habilidades o trabajar dificultades espec&iacute;ficas detectadas en el juego</td>
+              <td style="font-weight:800; color:#2C3E50;">$642,000</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700; color:#50C878;">Servicio adicional</td>
+              <td><strong>Bonus</strong></td>
+              <td>Actualizaciones de la plataforma: nuevos niveles, contenidos y mejoras</td>
+              <td style="font-weight:800; color:#2C3E50;">$80,000</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-caption">Fuente: Los autores</div>
       </div>
     </div>
   </section>
@@ -643,7 +697,7 @@
       <div class="about-stats">
         <div class="stat-box">
           <div class="stat-number">4</div>
-          <div class="stat-label">Componentes Ling&uuml;&iacute;sticos</div>
+          <div class="stat-label">Componentes del Lenguaje</div>
         </div>
         <div class="stat-box">
           <div class="stat-number">36+</div>
@@ -652,38 +706,6 @@
         <div class="stat-box">
           <div class="stat-number">100%</div>
           <div class="stat-label">Enfocado en lenguaje</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Team -->
-  <section class="section" id="equipo" style="background:#fff; max-width:none; padding:80px 24px;">
-    <div style="max-width:900px; margin:0 auto;">
-      <h2 class="section-title">Qui&eacute;nes Somos</h2>
-      <div class="section-divider"></div>
-      <p class="section-subtitle">Conoce al equipo detr&aacute;s de LinguaPlay.</p>
-      <div class="team-photo-container">
-        <img src="team-photo.jpg" alt="Equipo LinguaPlay" class="team-photo" onerror="this.style.display='none'" />
-      </div>
-      <div class="team-grid">
-        <div class="team-card">
-          <div class="team-avatar">👨</div>
-          <h4>Cristian Stiven Pedroza Ar&eacute;valo</h4>
-          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
-          <p class="team-semester">Octavo Semestre</p>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar">👩</div>
-          <h4>Mar&iacute;a Camila Ortiz Pinz&oacute;n</h4>
-          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
-          <p class="team-semester">Octavo Semestre</p>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar">👩</div>
-          <h4>Karoll Jurieth Mendoza Camargo</h4>
-          <p class="team-role">Estudiante de Fonoaudiolog&iacute;a</p>
-          <p class="team-semester">Octavo Semestre</p>
         </div>
       </div>
     </div>

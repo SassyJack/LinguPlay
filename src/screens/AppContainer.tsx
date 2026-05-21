@@ -183,12 +183,12 @@ export const AppContainer: React.FC = () => {
       case 'admin_dashboard':
         return <AdminDashboardScreen />;
       case 'component':
-        return <ComponentSelectorScreen testID="component-selector-screen" />;
+        return <ComponentSelectorScreen testID="component-screen" />;
       case 'level':
         return selectedComponentId ? (
           <LevelSelectorScreen
             componentId={selectedComponentId}
-            testID="level-selector-screen"
+            testID="level-screen"
           />
         ) : (
           <HomeScreen testID="home-screen" />
