@@ -22,43 +22,33 @@ const PAYMENT_METHODS = [
 
 const DOCUMENT_TYPES = ['CC', 'CE', 'NIT'];
 
-const PLANS = [
-  {
-    id: 'monthly',
-    name: 'Mensual',
-    price: '$18.900',
-    cents: 1890000,
-    period: '/mes',
-    features: [
-      'Intentos ilimitados',
-      'Sin anuncios',
-      'Soporte prioritario',
-      'Todos los componentes',
-    ],
-    popular: false,
-  },
-  {
-    id: 'annual',
-    name: 'Anual',
-    price: '$129.900',
-    cents: 12990000,
-    period: '/año',
-    features: [
-      'Todo lo del plan mensual',
-      '2 meses gratis',
-      'Informes detallados',
-      'Perfiles para 3 niños',
-    ],
-    popular: true,
-  },
+interface Product {
+  id: string;
+  category: string;
+  name: string;
+  price: string;
+  cents: number;
+  description: string;
+}
+
+const PRODUCTS: Product[] = [
+  { id: 'explorador', category: 'Juego', name: 'Juego Explorador', price: '$80,000', cents: 8000000, description: 'Acceso inicial a módulos y actividades seleccionadas para potenciar habilidades básicas' },
+  { id: 'maestro', category: 'Juego', name: 'Juego Maestro', price: '$130,000', cents: 13000000, description: 'Acceso ampliado a más módulos y niveles para potenciar habilidades adicionales' },
+  { id: 'heroe', category: 'Juego', name: 'Juego Héroe', price: '$190,000', cents: 19000000, description: 'Acceso completo a todos los módulos, niveles y actividades para potenciar todas las habilidades del lenguaje' },
+  { id: 'guia-interfaz', category: 'Paquete complementario', name: 'Guía Interfaz', price: '$120,000', cents: 12000000, description: 'Capacitación sobre el uso adecuado de la plataforma para padres, docentes y profesionales' },
+  { id: 'reporte-progreso', category: 'Paquete complementario', name: 'Reporte de Progreso', price: '$200,000', cents: 20000000, description: 'Informe sobre los resultados obtenidos y la potenciación de habilidades trabajadas' },
+  { id: 'potencia-personalizada', category: 'Paquete complementario', name: 'Potencia Personalizada', price: '$642,000', cents: 64200000, description: 'Intervención fonoaudiológica profesional para reforzar habilidades o trabajar dificultades específicas' },
+  { id: 'bonus', category: 'Servicio adicional', name: 'Bonus', price: '$80,000', cents: 8000000, description: 'Actualizaciones de la plataforma: nuevos niveles, contenidos y mejoras' },
 ];
+
+const CATEGORIES = ['Juego', 'Paquete complementario', 'Servicio adicional'] as const;
 
 export const SubscriptionScreen: React.FC = () => {
   const { theme } = useTheme();
   const { navigateTo, showToast } = useUI();
   const { isPremium, user, setSubscriptionTier } = useUser();
 
-  const [selectedPlan, setSelectedPlan] = useState<string>('annual');
+  const [selectedProduct, setSelectedProduct] = useState<string>('heroe');
   const [selectedMethod, setSelectedMethod] = useState<string>('nequi');
   const [showConfirm, setShowConfirm] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -137,9 +127,9 @@ export const SubscriptionScreen: React.FC = () => {
   }, [showToast, setSubscriptionTier]);
 
   const handleConfirmPayment = async () => {
-    const plan = PLANS.find(p => p.id === selectedPlan);
+    const product = PRODUCTS.find(p => p.id === selectedProduct);
     const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
-    if (!plan || !method || !user?.email) return;
+    if (!product || !method || !user?.email) return;
 
     if (method.id === 'nequi' && phoneNumber.length < 10) {
       showToast('Ingresa tu número de Nequi (10 dígitos)', 'warning');
@@ -161,9 +151,9 @@ export const SubscriptionScreen: React.FC = () => {
 
     setLoading(true);
     try {
-      const reference = `linguaplay-${plan.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const reference = `linguaplay-${product.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const result = await wompiService.createTransaction({
-        amountInCents: plan.cents,
+        amountInCents: product.cents,
         customerEmail: user.email,
         customerFullname: user.displayName || user.email,
         paymentMethodType: method.wompiType as any,
@@ -171,7 +161,7 @@ export const SubscriptionScreen: React.FC = () => {
         userLegalId: method.id === 'daviplata' ? docNumber : undefined,
         userLegalIdType: method.id === 'daviplata' ? docType : undefined,
         userType: method.id === 'bancolombia' ? 'PERSON' : undefined,
-        paymentDescription: `LinguaPlay ${plan.name} - ${user.email}`,
+        paymentDescription: `LinguaPlay ${product.name} - ${user.email}`,
         reference,
       });
 
@@ -240,17 +230,18 @@ export const SubscriptionScreen: React.FC = () => {
   }
 
   if (showConfirm) {
-    const plan = PLANS.find(p => p.id === selectedPlan);
+    const product = PRODUCTS.find(p => p.id === selectedProduct);
     const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
     return (
       <Container style={{ backgroundColor: theme.colors.background }} testID="subscription-confirm">
         <View style={styles.centered}>
-          <Text variant="h2" color={theme.colors.primary}>Confirmar pago</Text>
+          <Text variant="h2" color={theme.colors.primary}>Confirmar compra</Text>
 
           <View style={[styles.confirmCard, { backgroundColor: theme.colors.surface }]}>
-            <Text variant="h3">{plan?.name}</Text>
-            <Text variant="h1" color={theme.colors.accent}>{plan?.price}</Text>
-            <Text variant="caption" color={theme.colors.onSurface}>{plan?.period}</Text>
+            <Text variant="caption" color={theme.colors.onSurface} style={{ marginBottom: 4 }}>{product?.category}</Text>
+            <Text variant="h3">{product?.name}</Text>
+            <Text variant="h1" color={theme.colors.accent} style={{ marginTop: 8 }}>{product?.price}</Text>
+            <Text variant="caption" color={theme.colors.onSurface} style={{ marginTop: 8, textAlign: 'center' }}>{product?.description}</Text>
           </View>
 
           <View style={[styles.confirmCard, { backgroundColor: theme.colors.surface, marginTop: 12 }]}>
@@ -339,42 +330,45 @@ export const SubscriptionScreen: React.FC = () => {
             style={styles.backgroundImage}
           />
           <Image source={require('../../assets/logo.jpg')} style={styles.logo} />
-          <Text variant="h1" color={theme.colors.primary}>Premium</Text>
+          <Text variant="h1" color={theme.colors.primary}>Planes y Paquetes</Text>
           <Text variant="body" color={theme.colors.onBackground}>
-            Desbloquea todo el potencial de LinguaPlay
+            Elige el producto ideal para ti
           </Text>
         </View>
 
-        <View style={styles.plansContainer}>
-          {PLANS.map((plan) => (
-            <TouchableOpacity
-              key={plan.id}
-              style={[
-                styles.planCard,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: selectedPlan === plan.id ? theme.colors.primary : '#E0E0E0',
-                  borderWidth: selectedPlan === plan.id ? 3 : 1,
-                },
-              ]}
-              onPress={() => setSelectedPlan(plan.id)}
-            >
-              {plan.popular && (
-                <View style={styles.popularBadge}>
-                  <Text variant="caption" color="#FFFFFF">MÁS POPULAR</Text>
-                </View>
-              )}
-              <Text variant="h2" color={theme.colors.onBackground}>{plan.name}</Text>
-              <Text variant="h1" color={theme.colors.accent}>{plan.price}</Text>
-              <Text variant="caption" color={theme.colors.onSurface}>{plan.period}</Text>
-              <View style={styles.features}>
-                {plan.features.map((f, i) => (
-                  <Text key={i} variant="caption" color={theme.colors.onSurface}>✓ {f}</Text>
-                ))}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {CATEGORIES.map((cat) => {
+          const catProducts = PRODUCTS.filter(p => p.category === cat);
+          return (
+            <View key={cat} style={styles.categorySection}>
+              <Text variant="h3" color={theme.colors.primary} style={styles.categoryTitle}>
+                {cat === 'Juego' ? '🎮 ' : cat === 'Paquete complementario' ? '📦 ' : '🔄 '}
+                {cat === 'Juego' ? 'Juegos' : cat === 'Paquete complementario' ? 'Paquetes Complementarios' : 'Servicios Adicionales'}
+              </Text>
+              {catProducts.map((product) => (
+                <TouchableOpacity
+                  key={product.id}
+                  style={[
+                    styles.productCard,
+                    {
+                      backgroundColor: theme.colors.surface,
+                      borderColor: selectedProduct === product.id ? theme.colors.primary : '#E0E0E0',
+                      borderWidth: selectedProduct === product.id ? 3 : 1,
+                    },
+                  ]}
+                  onPress={() => setSelectedProduct(product.id)}
+                >
+                  <View style={styles.productHeader}>
+                    <Text variant="h3" color={theme.colors.onBackground} style={{ flex: 1 }}>{product.name}</Text>
+                    <Text variant="h2" color={theme.colors.accent}>{product.price}</Text>
+                  </View>
+                  <Text variant="caption" color={theme.colors.onSurface} style={styles.productDesc}>
+                    {product.description}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          );
+        })}
 
         <Text variant="h3" color={theme.colors.onBackground} style={styles.sectionTitle}>
           Método de pago
@@ -406,7 +400,7 @@ export const SubscriptionScreen: React.FC = () => {
         </View>
 
         <Button
-          title="Suscribirme ahora"
+          title="Comprar ahora"
           onPress={handleSubscribe}
           variant="primary"
           style={styles.subscribeButton}
@@ -467,24 +461,25 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 24,
   },
-  planCard: {
-    flex: 1,
+  productCard: {
     padding: 16,
     borderRadius: 20,
-    position: 'relative',
+    marginBottom: 10,
   },
-  popularBadge: {
-    position: 'absolute',
-    top: -10,
-    alignSelf: 'center',
-    backgroundColor: '#FF9800',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 10,
+  productHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  features: {
-    marginTop: 12,
-    gap: 6,
+  productDesc: {
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  categorySection: {
+    marginBottom: 20,
+  },
+  categoryTitle: {
+    marginBottom: 10,
   },
   sectionTitle: {
     marginBottom: 12,
