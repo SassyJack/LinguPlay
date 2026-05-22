@@ -41,7 +41,12 @@ const PRODUCTS: Product[] = [
   { id: 'bonus', category: 'Servicio adicional', name: 'Bonus', price: '$80,000', cents: 8000000, description: 'Actualizaciones de la plataforma: nuevos niveles, contenidos y mejoras' },
 ];
 
-const CATEGORIES = ['Juego', 'Paquete complementario', 'Servicio adicional'] as const;
+const CATEGORIES = ['Juego', 'Paquete complementario'] as const;
+
+const BONUS = PRODUCTS.find(p => p.id === 'bonus')!;
+
+const formatPrice = (cents: number) =>
+  '$' + (cents / 100).toLocaleString('es-CO');
 
 export const SubscriptionScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -49,6 +54,7 @@ export const SubscriptionScreen: React.FC = () => {
   const { isPremium, user, setSubscriptionTier } = useUser();
 
   const [selectedProduct, setSelectedProduct] = useState<string>('heroe');
+  const [selectedBonus, setSelectedBonus] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>('nequi');
   const [showConfirm, setShowConfirm] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -131,6 +137,9 @@ export const SubscriptionScreen: React.FC = () => {
     const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
     if (!product || !method || !user?.email) return;
 
+    const totalCents = product.cents + (selectedBonus ? BONUS.cents : 0);
+    const productLabel = product.name + (selectedBonus ? ` + ${BONUS.name}` : '');
+
     if (method.id === 'nequi' && phoneNumber.length < 10) {
       showToast('Ingresa tu número de Nequi (10 dígitos)', 'warning');
       setLoading(false);
@@ -153,7 +162,7 @@ export const SubscriptionScreen: React.FC = () => {
     try {
       const reference = `linguaplay-${product.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const result = await wompiService.createTransaction({
-        amountInCents: product.cents,
+        amountInCents: totalCents,
         customerEmail: user.email,
         customerFullname: user.displayName || user.email,
         paymentMethodType: method.wompiType as any,
@@ -161,7 +170,7 @@ export const SubscriptionScreen: React.FC = () => {
         userLegalId: method.id === 'daviplata' ? docNumber : undefined,
         userLegalIdType: method.id === 'daviplata' ? docType : undefined,
         userType: method.id === 'bancolombia' ? 'PERSON' : undefined,
-        paymentDescription: `LinguaPlay ${product.name} - ${user.email}`,
+        paymentDescription: `LinguaPlay ${productLabel} - ${user.email}`,
         reference,
       });
 
@@ -232,6 +241,7 @@ export const SubscriptionScreen: React.FC = () => {
   if (showConfirm) {
     const product = PRODUCTS.find(p => p.id === selectedProduct);
     const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
+    const totalCents = (product?.cents ?? 0) + (selectedBonus ? BONUS.cents : 0);
     return (
       <Container style={{ backgroundColor: theme.colors.background }} testID="subscription-confirm">
         <View style={styles.centered}>
@@ -240,8 +250,17 @@ export const SubscriptionScreen: React.FC = () => {
           <View style={[styles.confirmCard, { backgroundColor: theme.colors.surface }]}>
             <Text variant="caption" color={theme.colors.onSurface} style={{ marginBottom: 4 }}>{product?.category}</Text>
             <Text variant="h3">{product?.name}</Text>
-            <Text variant="h1" color={theme.colors.accent} style={{ marginTop: 8 }}>{product?.price}</Text>
-            <Text variant="caption" color={theme.colors.onSurface} style={{ marginTop: 8, textAlign: 'center' }}>{product?.description}</Text>
+            <Text variant="body" color={theme.colors.onSurface} style={{ marginTop: 4 }}>{product?.description}</Text>
+            {selectedBonus && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E0E0E0', width: '100%', justifyContent: 'center', gap: 6 }}>
+                <Text variant="body" color={theme.colors.primary}>+ {BONUS.name}</Text>
+                <Text variant="body" color={theme.colors.accent}>{BONUS.price}</Text>
+              </View>
+            )}
+            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 2, borderTopColor: theme.colors.primary, width: '100%', alignItems: 'center' }}>
+              <Text variant="h1" color={theme.colors.accent}>{formatPrice(totalCents)}</Text>
+              <Text variant="caption" color={theme.colors.onSurface}>Total</Text>
+            </View>
           </View>
 
           <View style={[styles.confirmCard, { backgroundColor: theme.colors.surface, marginTop: 12 }]}>
@@ -338,11 +357,12 @@ export const SubscriptionScreen: React.FC = () => {
 
         {CATEGORIES.map((cat) => {
           const catProducts = PRODUCTS.filter(p => p.category === cat);
+          if (catProducts.length === 0) return null;
           return (
             <View key={cat} style={styles.categorySection}>
               <Text variant="h3" color={theme.colors.primary} style={styles.categoryTitle}>
-                {cat === 'Juego' ? '🎮 ' : cat === 'Paquete complementario' ? '📦 ' : '🔄 '}
-                {cat === 'Juego' ? 'Juegos' : cat === 'Paquete complementario' ? 'Paquetes Complementarios' : 'Servicios Adicionales'}
+                {cat === 'Juego' ? '🎮 ' : '📦 '}
+                {cat === 'Juego' ? 'Juegos' : 'Paquetes Complementarios'}
               </Text>
               {catProducts.map((product) => (
                 <TouchableOpacity
@@ -369,6 +389,27 @@ export const SubscriptionScreen: React.FC = () => {
             </View>
           );
         })}
+
+        <View style={[styles.bonusSection, { backgroundColor: theme.colors.surface, borderColor: selectedBonus ? '#50C878' : '#E0E0E0' }]}>
+          <TouchableOpacity
+            style={styles.bonusToggle}
+            onPress={() => setSelectedBonus(!selectedBonus)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, { backgroundColor: selectedBonus ? '#50C878' : 'transparent', borderColor: selectedBonus ? '#50C878' : theme.colors.onSurface }]}>
+              {selectedBonus && <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '900' }}>✓</Text>}
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.productHeader}>
+                <Text variant="h3" color={theme.colors.onBackground}>🔄 {BONUS.name}</Text>
+                <Text variant="h2" color={theme.colors.accent}>{BONUS.price}</Text>
+              </View>
+              <Text variant="caption" color={theme.colors.onSurface} style={styles.productDesc}>
+                {BONUS.description}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         <Text variant="h3" color={theme.colors.onBackground} style={styles.sectionTitle}>
           Método de pago
@@ -456,11 +497,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFD93D',
   },
-  plansContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
   productCard: {
     padding: 16,
     borderRadius: 20,
@@ -480,6 +516,26 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     marginBottom: 10,
+  },
+  bonusSection: {
+    borderRadius: 20,
+    borderWidth: 2,
+    marginBottom: 20,
+    padding: 16,
+  },
+  bonusToggle: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
   },
   sectionTitle: {
     marginBottom: 12,
